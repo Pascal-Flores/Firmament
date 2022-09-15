@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="author" content="Bemuse">
+        <meta name="description" content="Arknights Wallpaper for Wallpaper Engine(WE)">
+        <meta name="keywords" content="html, css, js, vue.js, three.js">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <!-- <script src="js/jquery-3.6.0.min.js"></script> -->
+        <script src="js/vue.min.js"></script>
+        <script src="js/throttle.js"></script>
+        <link href="css/style.css" rel="stylesheet" type="text/css"/>
+    </head>
+    <body>
+        <div id="wrap">
+            <transition name="opening-hide">
+                <div id="opening" v-show="shows.opening">
+                    <div id="loading-wrap">
+                        <div id="loading-bar">
+                            <div :style="styles.loading.div"></div>
+                            <div :style="styles.loading.div"></div>
+                        </div>
+                        <div id="loading-percentage">
+                            <span :style="styles.loading.span.a">{{loading.progress}}%</span>
+                            <span :style="styles.loading.span.b">{{loading.progress}}%</span>
+                            <span :style="styles.loading.span.c">{{loading.complete}}</span>
+                        </div>
+                    </div>
+                </div>
+            </transition>
+            <div id="main">
+                <div id="background-wrap">
+                    <div id="background-frame">
+                        <div :style="styles.background.frame"></div>
+                    </div>
+                    <div id="background-image">
+                        <div :style="styles.background.image"></div>
+                        <video v-show="shows.video" ref="videobg" src="" muted loop id="background-video"></video>
+                    </div>
+                    <div id="background-cross">
+                        <div v-for="cross in arrays.cross" :key="cross.id"></div>
+                    </div>
+                    <div id="background-square" @mousemove="mouseMove">
+                        <div v-for="square in arrays.square" :key="square.id"></div>
+                    </div>
+                </div>
+                <div id="app-wrap">
+                    <div id="app-transform" :style="clockTrans">
+                        <div class="app line">
+                            <div id="line-title">
+                                <span>CRT TIME</span>
+                            </div>
+                            <div id="line-graph">
+                                <div id="line-graph-hour">
+                                    <div></div>
+                                    <div :style="lineHourWidth"></div>
+                                    <span>{{'0.'+(time.hour < 10 ? '0'+time.hour : time.hour)}}</span>
+                                </div>
+                                <div id="line-graph-min">
+                                    <div></div>
+                                    <div :style="lineMinuteWidth"></div>
+                                    <span>{{'0.'+(time.min < 10 ? '0'+time.min : time.min)}}</span>
+                                </div>
+                                <div id="line-graph-sec">
+                                    <div></div>
+                                    <div :style="lineSecondWidth"></div>
+                                    <span>{{'0.'+(time.sec < 10 ? '0'+time.sec : time.sec)}}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="app date">
+                            <div class="side-circle" id="date-wrap">
+                                <div></div>
+                                <div></div>
+                                <div>
+                                    <span>{{displayFullDate}}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="app time">
+                            <div class="side-circle" id="time-wrap">
+                                <div></div>
+                                <div></div>
+                                <div>
+                                    <span>{{displayFullTime}}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="app uptime">
+                            <div class="side-circle" id="uptime-wrap">
+                                <div></div>
+                                <div></div>
+                                <div>
+                                    <span>{{displayUptime}}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="app day">
+                            <div class="side-circle" id="day-wrap">
+                                <div></div>
+                                <div></div>
+                                <div>
+                                    <span>{{displayDay}}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="app clock">
+                            <div id="clock-second">
+                                <div v-for="second in arrays.clock.second" :key="second.id">
+                                    <div :style="second.style.trans">
+                                        <span :style="second.style.font">{{second.text}}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="clock-minute">
+                                <div v-for="minute in arrays.clock.minute" :key="minute.id">
+                                    <div :style="minute.style.trans">
+                                        <span :style="minute.style.font">{{minute.text}}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="clock-hour">
+                                <div v-for="hour in arrays.clock.hour" :key="hour.id">
+                                    <div :style="hour.style.trans">
+                                        <span :style="hour.style.font">{{hour.text}}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="clock-circle">
+                                <div v-for="circle in arrays.clock.circles" :key="circle.id">
+                                    <div></div>
+                                </div>
+                            </div>
+                            <div id="clock-logo-trans">
+                                <div v-for="rect in arrays.clock.rects" :key="rect.id" :style="rect.style.one">
+                                    <div :style="rect.style.two">
+                                        <div :style="rect.style.three"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="end">
+                    <div id="change-bg" @click="displayOverlay">
+                        <div></div>
+                    </div>
+                    <transition name="overlay-hide">
+                        <div id="overlay" v-show="shows.overlay" @click="hideOverlay">
+                            <div id="overlay-wrap">
+                                <div id="overlay-image">
+                                    <div @click="changeBG(true, 0)"></div>
+                                    <div @click="changeBG(true, 1)"></div>
+                                    <div @click="changeBG(true, 2)"></div>
+                                    <div @click="changeBG(true, 3)"></div>
+                                    <div @click="changeBG(true, 4)"></div>
+                                </div>
+                                <div id="overlay-video">
+                                    <div @click="changeBG(false, 0)"></div>
+                                    <div @click="changeBG(false, 1)"></div>
+                                    <div @click="changeBG(false, 2)"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </transition>
+                </div>  
+            </div>
+        </div>
+
+        <script src="js/main.js"></script>
+    </body>
+</html>
