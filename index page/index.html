@@ -7,22 +7,6 @@
         <iframe sandbox="allow-scripts allow-same-origin" src="../wallpapers/gandalf/index.html" id="content">
         </iframe>
     </body>
-    <script>
-        iframe = document.getElementById('content')
-        iframe.setAttribute('width', window.screen.width)
-        iframe.setAttribute("height", window.screen.height)
-        iframe.onclick = function (event) {
-            return false;
-        }
-    </script>
-    <script type="text/javascript">
-        console.log("cringe")
-    toStop = ["onclick", "mousemove", "keypress"]
-    for(var i = 0; i < toStop.length; i++) {
-      iframe = document.getElementById("iframe");
-      iframe.addEventListener(toStop[i], function(event) {
-        return false;
-      }, false);
-    }
-  </script>
+    <script src="require.js"></script>
+    <script src="script.js"></script>
 </html>
