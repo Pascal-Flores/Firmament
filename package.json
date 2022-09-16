@@ -1,7 +1,7 @@
 {
-  "name": "test-wallpaper",
+  "name": "Firmament",
   "version": "1.0.0",
-  "description": "oui",
+  "description": "A lightweight unix wallpaper manager",
   "main": "main.js",
   "scripts": {
     "start": "electron ."
