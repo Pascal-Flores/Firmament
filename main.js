@@ -50,22 +50,26 @@ function doesWallpaperNeedsToBeDeactivated() {
 		// we remove the windows that are Firmament itself
 		if (temp[7] != "Firmament") {
 			windowinfos.push(temp)
-			console.log(windowinfos[windowinfos.length-1].toString())
 		}
 	})
 
 	let notHiddenWindows = []
-	let maximizedWindows = []  
+	let maximizedWindows = []
 	
 	// now we check for maximized windows and hidden windows (if windows are maximized, we can return true as the wallpaper is totally hidden by any maximized window)
 	for (let i = 0; i < windowinfos.length; ++i) {
 		let temp = execSync('xwininfo -wm -id '+windowinfos[i][0]).toString()
-		//console.log(temp)
-		if (temp.includes("Hidden")) {
+
+		if (!temp.includes("Hidden")) {
 			notHiddenWindows.push(windowinfos[i])
+			if (temp.includes("Maximized Horz") && temp.includes("Maximized Vert")) {
+				maximizedWindows.push(windowinfos[i])
+				
+			}
 		}
 	}
-	//notHiddenWindows.forEach(element => {console.log(element.toString())})
+	
+	maximizedWindows.forEach(element => {console.log(element.toString())})
 
 }
 app.whenReady().then(() => {
