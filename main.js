@@ -33,17 +33,17 @@ function doesWallpaperNeedsToBeDeactivated() {
 	wmctrlResult.toString().split('\n').forEach(window => {
 		let temp = []
 		if (window != "") {
-			let info = window.split(" ")
+			let info = window.split(" ").filter(x => x !== '');
 			for (let infoindex = 0; temp.length <= 6; ++infoindex) {
 				if (info[infoindex] != "") temp.push(info[infoindex])
 			}
-			temp[7] = ""
-			for (let nameindex = 7; nameindex < info.length; ++nameindex ) {
-				if (info[nameindex] != "" ) {
-					temp[7] += info[nameindex]
-				} 
-			}
-			console.log(temp)
+			temp[7] = info.slice(7, info.length-1).join(' ')
+			// for (let nameindex = 7; nameindex < info.length; ++nameindex ) {
+			// 	if (info[nameindex] != "" ) {
+			// 		temp[7] += info[nameindex]
+			// 	} 
+			// }
+			console.log(temp.toString())
 			windowinfos.push(temp)
 		}
 	})
