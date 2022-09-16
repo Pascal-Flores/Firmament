@@ -24,10 +24,13 @@ function checkWindows() {
 	let windowinfos = []
 	wmctrlResult.toString().split('\n').forEach(window => {
 		let temp = []
-		window.split(" ").forEach(info => {
-			if (info != "") temp.push(info)
-		})
-		windowinfos.push(temp)
+		if (window != "") {
+			info = window.split(" ")
+			for (let infoindex = 0; temp.length < 7; ++infoindex) {
+				if (info[infoindex] != "") temp.push(info[infoindex])
+			}
+			windowinfos.push(temp)
+		}
 	})
 	let newwindowinfos = []
 	for (let i = 0; i < windowinfos.length; ++i) {
@@ -37,7 +40,6 @@ function checkWindows() {
 			newwindowinfos.push(windowinfos[i])
 		}
 	}
-	
 	newwindowinfos.forEach(element => {console.log(element.toString())})
 
 }
