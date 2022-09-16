@@ -16,7 +16,7 @@ const createWindow = () => {
 	backgroundWindow.loadFile('index page/index.html')
 	console.log("loaded html")
 
-	doesWallpaperNeedsToBeDeactivated()
+	console.log(doesWallpaperNeedsToBeDeactivated())
 
 }
 
@@ -56,21 +56,28 @@ function doesWallpaperNeedsToBeDeactivated() {
 	let notHiddenWindows = []
 	let maximizedWindows = []
 	
-	// now we check for maximized windows and hidden windows (if windows are maximized, we can return true as the wallpaper is totally hidden by any maximized window)
+	// now we check for maximized windows and hidden windows
 	for (let i = 0; i < windowinfos.length; ++i) {
+		
+		/*
+		xwininfo gives informations about a precise window given with -id, 
+		and the -wm option gives window anager related informations about the window manager (type of window, position, etc...)
+		*/
 		let temp = execSync('xwininfo -wm -id '+windowinfos[i][0]).toString()
 
 		if (!temp.includes("Hidden")) {
 			notHiddenWindows.push(windowinfos[i])
 			if (temp.includes("Maximized Horz") && temp.includes("Maximized Vert")) {
 				maximizedWindows.push(windowinfos[i])
-				
 			}
 		}
 	}
 	
-	maximizedWindows.forEach(element => {console.log(element.toString())})
-
+	if (maximizedWindows.length != 0) return true
+	else {
+			
+		return false
+	}
 }
 app.whenReady().then(() => {
 		
