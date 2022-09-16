@@ -27,25 +27,33 @@ function doesWallpaperNeedsToBeDeactivated() {
 	let wmctrlResult = 	execSync("wmctrl -l -p -G", ).toString()
 	let windowinfos = []
 
-	// we build the windowinfos array that stores windows informations, as the following :
-	// each element of windowinfos is an array of window infos, like this :
-	// windowid, z-order (0 for normal, -1 for desktop), window int id, x position, y position, width, height, name
-	wmctrlResult.toString().split('\n').forEach(window => {
+	/* 
+	we build the windowinfos array that stores windows informations, as the following :
+	each element of windowinfos is an array of window infos, like this :
+	windowid, z-order (0 for normal, -1 for desktop), window int id, x position, y position, width, height, name
+	*/
+	// we iterate over every non empty line from wmctrl result
+	wmctrlResult.toString().split('\n').filter(x =>x !== '').forEach(window => {
+		
 		let temp = []
-		if (window != "") {
-			let info = window.split(" ").filter(x => x !== '');
-			//console.log(info.toString())
-			for (let infoindex = 0; temp.length <= 6; ++infoindex) {
-				if (info[infoindex] != "") temp.push(info[infoindex])
-			}
-			temp[7] = info.slice(8, info.length).join(' ')
-			if (temp[7] != "Firmament") {
-				windowinfos.push(temp)
-				console.log(windowinfos[windowinfos.length-1].toString())
-			}
+		// we split the string in an array of non empty strings
+		let info = window.split(" ").filter(x => x !== '');
+	
+		// we put the 7 first elements of the info array into the temp array
+		for (let infoindex = 0; temp.length <= 6; ++infoindex) {
+			temp.push(info[infoindex])
+		}
 
+		// we concatenate the last elements of the info array, which correspond to the name of the window
+		temp[7] = info.slice(8, info.length).join(' ')
+
+		// we remove the windows that are Firmament itself
+		if (temp[7] != "Firmament") {
+			windowinfos.push(temp)
+			console.log(windowinfos[windowinfos.length-1].toString())
 		}
 	})
+
 	let notHiddenWindows = []
 	let maximizedWindows = []  
 	
