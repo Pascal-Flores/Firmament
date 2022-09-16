@@ -25,6 +25,7 @@ function doesWallpaperNeedsToBeDeactivated() {
 
 	// wmctrl get all windows managed by the system desktop manager
 	let wmctrlResult = 	execSync("wmctrl -l -p -G", ).toString()
+	console.log(wmctrlResult)
 	let windowinfos = []
 
 	// we build the windowinfos array that stores windows informations, as the following :
@@ -34,16 +35,13 @@ function doesWallpaperNeedsToBeDeactivated() {
 		let temp = []
 		if (window != "") {
 			let info = window.split(" ").filter(x => x !== '');
+			//console.log(info.toString())
 			for (let infoindex = 0; temp.length <= 6; ++infoindex) {
 				if (info[infoindex] != "") temp.push(info[infoindex])
 			}
-			temp[7] = info.slice(7, info.length-1).join(' ')
-			// for (let nameindex = 7; nameindex < info.length; ++nameindex ) {
-			// 	if (info[nameindex] != "" ) {
-			// 		temp[7] += info[nameindex]
-			// 	} 
-			// }
-			console.log(temp.toString())
+			temp[7] = info.slice(8, info.length).join(' ')
+			//console.log(temp.toString())
+			//if (temp[7].includes("Firmament")
 			windowinfos.push(temp)
 		}
 	})
