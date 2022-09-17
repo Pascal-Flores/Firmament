@@ -1,16 +1,20 @@
 const { execSync } = require('child_process')
 const { info } = require('console')
-const {app, BrowserWindow, globalShortcut, screen, ipcRenderer } = require('electron')
-const { readFileSync, existsSync, mkdir, cp, close, mkdirSync, cpSync, openSync, readFile} = require('fs')
+const {app, BrowserWindow, globalShortcut, screen, ipcRenderer, dialog } = require('electron')
+const { readFileSync, existsSync, mkdir, cp, close, mkdirSync, cpSync, openSync, readFile, writeFileSync} = require('fs')
 const { readSync } = require('original-fs')
 const { homedir } = require('os')
 
-var lastLoadedWallpaper
+app.commandLine.appendSwitch('disable-features', 'HardwareMediaKeyHandling,MediaSessionService');
+
+var config
 var configDirectory = homedir()+"/.firmament"
 
+var wallpaperWindow 
 const createWindow = () => {
-	const backgroundWindow = new BrowserWindow({
+	wallpaperWindow = new BrowserWindow({
 		frame : false,
+		autoHideMenuBar: true,
 		width : screen.getPrimaryDisplay().size.width,
 		height : screen.getPrimaryDisplay().size.height,
 		type : "desktop",
@@ -19,7 +23,7 @@ const createWindow = () => {
 			enableWebSQL : false,
 		}
 	})
-	backgroundWindow.loadFile(configDirectory+lastLoadedWallpaper)
+	wallpaperWindow.loadFile(configDirectory+config.lastLoadedWallpaper)
 
 	console.log("loaded html")
 
@@ -85,11 +89,53 @@ function doesWallpaperNeedsToBeDeactivated() {
 		return false
 	}
 }
+
+function setWallpaper(pathToWallpaper) {
+	if (pathToWallpaper !== undefined) {
+		if (pathToWallpaper.filePaths.length != 0) {
+			wallpaperWindow.loadFile(pathToWallpaper.filePaths[0])
+			config.lastLoadedWallpaper = pathToWallpaper.filePaths[0].substring(pathToWallpaper.filePaths[0].indexOf('/wallpapers'))
+		}
+	}
+}
+
 app.whenReady().then(() => {
 	loadUserConfig()
 
 	createWindow() 
+
+	globalShortcut.register(config.shortcuts.import, () => {
+		dialog.showOpenDialog({
+			title : "Import new wallpaper",
+			defaultPath : homedir(),
+			properties : ['openFile'], 
+			filters : [
+				{name : 'Images', extensions : ['gif']},
+				{name : 'Movies', extensions : ['mp4', 'mkv', 'avi', 'mov']},
+				{name : 'HTML', extensions : ['html']}
+			]}).then((path) => importWallpaper(path))
+	})
+
+	globalShortcut.register(config.shortcuts.choose, () => {
+		dialog.showOpenDialog({
+			title : "Set wallpaper",
+			defaultPath : configDirectory+"/wallpapers/",
+			properties : ['openFile'], 
+			filters : [
+				{name : 'HTML', extensions : ['html']}
+			]}).then((path) => setWallpaper(path))
+	})
+
+	globalShortcut.register(config.shortcuts.quit, () => {
+		app.quit()
+	})
 } )
+
+
+
+app.on('will-quit', () => {
+	writeFileSync(configDirectory+"/config.json", JSON.stringify(config), "utf-8")
+})
 
 function checkConfigIntegrity() {
 	if (!existsSync(configDirectory)) 					
@@ -111,6 +157,5 @@ function checkConfigIntegrity() {
 function loadUserConfig() {
 	checkConfigIntegrity()
 	
-	let config = JSON.parse(readFileSync(configDirectory+"/config.json", {encoding : 'utf-8'}))
-	lastLoadedWallpaper = config.lastLoadedWallpaper
+	config = JSON.parse(readFileSync(configDirectory+"/config.json", {encoding : 'utf-8'}))
 }
