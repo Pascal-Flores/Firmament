@@ -4,9 +4,12 @@ const {app, BrowserWindow, globalShortcut, screen, ipcRenderer, dialog, Tray, Me
 const { readFileSync, existsSync, mkdir, cp, close, mkdirSync, cpSync, openSync, readFile, writeFileSync} = require('fs')
 const { readSync } = require('original-fs')
 const { homedir } = require('os')
+const { basename, dirname } = require('path')
 
+// disables the possiblity to pause audio/video of the wallpaper through os itself (notification with play/pause option). Done to avoid bloat on the notification panel
 app.commandLine.appendSwitch('disable-features', 'HardwareMediaKeyHandling,MediaSessionService');
 
+// contains the user config of Firmament
 var config
 var configDirectory = homedir()+"/.firmament"
 
@@ -112,6 +115,8 @@ function setWallpaper() {
 function switchWallpaper(pathToWallpaper) {
 	wallpaperWindow.loadFile(pathToWallpaper)
 	config.lastLoadedWallpaper = pathToWallpaper.substring(pathToWallpaper.indexOf('/wallpapers'))
+	saveConfig()
+	refreshTray()
 }
 
 
@@ -122,10 +127,49 @@ function importWallpaper() {
 function openPreferences() {
 
 }
+function saveConfig() {
+	writeFileSync(configDirectory+"/config.json", JSON.stringify(config, null, 4), "utf-8",)
+}
 
-function createTray() {
+function pinCurrentWallpaper() {
+	config.pinnedWallpapers.push({
+		"name" : config.lastLoadedWallpaper.substring(dirname(config.lastLoadedWallpaper).lastIndexOf('/')+1, config.lastLoadedWallpaper.lastIndexOf('/')), 
+		"src" : config.lastLoadedWallpaper})
+	saveConfig()
+	refreshTray()
+}
 
-	let buildPinnedWallpapersSubMenu = () => {
+function unpinCurrentWallpaper() {
+	config.pinnedWallpapers.splice(config.pinnedWallpapers.findIndex(pin => pin.src.match(config.lastLoadedWallpaper)), 1)
+	saveConfig()
+	refreshTray()
+}
+function buildTrayMenu() {
+
+	function isCurrentWallpaperPinned() {
+		let result = false
+		if (config.pinnedWallpapers.length != 0) {
+			config.pinnedWallpapers.forEach(element => {
+				if (config.lastLoadedWallpaper.toString().match(element.src.toString())) {
+					result = true
+				}
+			})
+			return result
+		}
+		return result
+
+	}
+
+	let pinMenuItem
+	console.log(isCurrentWallpaperPinned())
+	if (isCurrentWallpaperPinned()) {
+		pinMenuItem = new MenuItem({label : 'Unpin this wallpaper', type : 'normal', click : unpinCurrentWallpaper})
+	}
+	else {
+		pinMenuItem = new MenuItem({label : 'Pin this wallpaper', type : 'normal', click : pinCurrentWallpaper})
+	}
+
+	function buildPinnedWallpapersSubMenu()  {
 		let submenu = new Menu()
 		if (config.pinnedWallpapers.length != 0) {
 			config.pinnedWallpapers.forEach(element => {
@@ -137,24 +181,35 @@ function createTray() {
 			})
 		}
 		else {
-			submenu.append({label : "No wallpaper pinned", enabled : false})
+			submenu.append(new MenuItem({label : "No wallpaper pinned", enabled : false}))
 		}
 		return submenu
 	}
 
-	tray = new Tray("assets/icon.png")
-	const contextMenu = Menu.buildFromTemplate([
+	const trayMenu = Menu.buildFromTemplate([
 		{ label : 'Firmament', type : 'normal', enabled : false },
-		{ type  : "separator"},
+		{ type  : 'separator'},
 		{ label : 'Change wallpaper', type : 'normal' , click : setWallpaper },
 		{ label : 'Import new wallpaper', type : 'normal', click : importWallpaper },
+		pinMenuItem,
 		{ label : "Pinned Wallpapers", sublabel : "oui" , submenu : buildPinnedWallpapersSubMenu()},
 		{ type  : "separator"},
 		{ label : "Preferences", type : 'normal', click : openPreferences},
 		{ label: 'Quit Firmament', type: 'normal', role : "quit" }
 	  ])
+
+	  return trayMenu
+}
+
+function createTray() {
+
+	tray = new Tray("assets/icon.png")
 	tray.setToolTip('This is Firmament toolbox')
-	tray.setContextMenu(contextMenu)
+	tray.setContextMenu(buildTrayMenu())
+}
+
+function refreshTray() {
+	tray.setContextMenu(buildTrayMenu())
 }
 
 app.whenReady().then(() => {
