@@ -4,7 +4,11 @@
         "import" : "Super+F+I",
         "choose" : "Super+F+C",
         "quit" : "Super+F+Q"
-    } 
+    },
+    "pinnedWallpapers" : [
+        { "name" : "default", "src" : "/wallpapers/default/default_wallpaper.html"},
+        { "name" : "wue", "src" : "/wallpapers/wue/default_wallpaper.html"}
+    ] 
 
 
 }

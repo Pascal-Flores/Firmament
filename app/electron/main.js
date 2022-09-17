@@ -1,6 +1,6 @@
 const { execSync } = require('child_process')
 const { info } = require('console')
-const {app, BrowserWindow, globalShortcut, screen, ipcRenderer, dialog } = require('electron')
+const {app, BrowserWindow, globalShortcut, screen, ipcRenderer, dialog, Tray, Menu, MenuItem } = require('electron')
 const { readFileSync, existsSync, mkdir, cp, close, mkdirSync, cpSync, openSync, readFile, writeFileSync} = require('fs')
 const { readSync } = require('original-fs')
 const { homedir } = require('os')
@@ -10,9 +10,11 @@ app.commandLine.appendSwitch('disable-features', 'HardwareMediaKeyHandling,Media
 var config
 var configDirectory = homedir()+"/.firmament"
 
-var wallpaperWindow 
-const createWindow = () => {
+var tray
+
+function createWallpaperWindow () {
 	wallpaperWindow = new BrowserWindow({
+		show : false,
 		frame : false,
 		autoHideMenuBar: true,
 		width : screen.getPrimaryDisplay().size.width,
@@ -24,10 +26,11 @@ const createWindow = () => {
 		}
 	})
 	wallpaperWindow.loadFile(configDirectory+config.lastLoadedWallpaper)
+	wallpaperWindow.show()
+	return wallpaperWindow
+}
 
-	console.log("loaded html")
-
-	console.log(doesWallpaperNeedsToBeDeactivated())
+function createPreferencesWindow () {
 
 }
 
@@ -90,19 +93,77 @@ function doesWallpaperNeedsToBeDeactivated() {
 	}
 }
 
-function setWallpaper(pathToWallpaper) {
-	if (pathToWallpaper !== undefined) {
-		if (pathToWallpaper.filePaths.length != 0) {
-			wallpaperWindow.loadFile(pathToWallpaper.filePaths[0])
-			config.lastLoadedWallpaper = pathToWallpaper.filePaths[0].substring(pathToWallpaper.filePaths[0].indexOf('/wallpapers'))
+function setWallpaper() {
+	dialog.showOpenDialog({
+		title : "Set wallpaper",
+		defaultPath : configDirectory+"/wallpapers/",
+		properties : ['openFile'], 
+		filters : [
+			{name : 'HTML', extensions : ['html']}
+		]}).then((promiseResult) => {
+			if (promiseResult !== undefined) {
+				if (promiseResult.filePaths.length != 0) {
+				switchWallpaper(promiseResult.filePaths[0])
+				}
+			}
+		})
+}
+
+function switchWallpaper(pathToWallpaper) {
+	wallpaperWindow.loadFile(pathToWallpaper)
+	config.lastLoadedWallpaper = pathToWallpaper.substring(pathToWallpaper.indexOf('/wallpapers'))
+}
+
+
+function importWallpaper() {
+
+}
+
+function openPreferences() {
+
+}
+
+function createTray() {
+
+	let buildPinnedWallpapersSubMenu = () => {
+		let submenu = new Menu()
+		if (config.pinnedWallpapers.length != 0) {
+			config.pinnedWallpapers.forEach(element => {
+				submenu.append(new MenuItem({
+					label : element.name, 
+					type : "normal", 
+					click : switchWallpaper.bind(this, configDirectory+element.src)
+				}))
+			})
 		}
+		else {
+			submenu.append({label : "No wallpaper pinned", enabled : false})
+		}
+		return submenu
 	}
+
+	tray = new Tray("assets/icon.png")
+	const contextMenu = Menu.buildFromTemplate([
+		{ label : 'Firmament', type : 'normal', enabled : false },
+		{ type  : "separator"},
+		{ label : 'Change wallpaper', type : 'normal' , click : setWallpaper },
+		{ label : 'Import new wallpaper', type : 'normal', click : importWallpaper },
+		{ label : "Pinned Wallpapers", sublabel : "oui" , submenu : buildPinnedWallpapersSubMenu()},
+		{ type  : "separator"},
+		{ label : "Preferences", type : 'normal', click : openPreferences},
+		{ label: 'Quit Firmament', type: 'normal', role : "quit" }
+	  ])
+	tray.setToolTip('This is Firmament toolbox')
+	tray.setContextMenu(contextMenu)
 }
 
 app.whenReady().then(() => {
 	loadUserConfig()
 
-	createWindow() 
+	createTray()
+
+	let wallpaperWindow = createWallpaperWindow() 
+
 
 	globalShortcut.register(config.shortcuts.import, () => {
 		dialog.showOpenDialog({
@@ -117,13 +178,7 @@ app.whenReady().then(() => {
 	})
 
 	globalShortcut.register(config.shortcuts.choose, () => {
-		dialog.showOpenDialog({
-			title : "Set wallpaper",
-			defaultPath : configDirectory+"/wallpapers/",
-			properties : ['openFile'], 
-			filters : [
-				{name : 'HTML', extensions : ['html']}
-			]}).then((path) => setWallpaper(path))
+		
 	})
 
 	globalShortcut.register(config.shortcuts.quit, () => {
@@ -134,7 +189,7 @@ app.whenReady().then(() => {
 
 
 app.on('will-quit', () => {
-	writeFileSync(configDirectory+"/config.json", JSON.stringify(config), "utf-8")
+	writeFileSync(configDirectory+"/config.json", JSON.stringify(config, null, 4), "utf-8",)
 })
 
 function checkConfigIntegrity() {
@@ -159,3 +214,4 @@ function loadUserConfig() {
 	
 	config = JSON.parse(readFileSync(configDirectory+"/config.json", {encoding : 'utf-8'}))
 }
+let wallpaperWindow
