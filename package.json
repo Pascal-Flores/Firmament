@@ -2,7 +2,7 @@
   "name": "Firmament",
   "version": "1.0.0",
   "description": "A lightweight unix wallpaper manager",
-  "main": "main.js",
+  "main": "app/electron/main.js",
   "scripts": {
     "start": "electron ."
   },
