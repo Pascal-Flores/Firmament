@@ -6,11 +6,25 @@
   "scripts": {
     "start": "electron ."
   },
-  "author": "",
+  "author": "Pascal Flores",
   "license": "ISC",
   "devDependencies": {
     "child_process": "^1.0.2",
     "electron": "^20.1.4"
   },
-  "dependencies": {}
+  "dependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Pascal-Flores/Firmament.git"
+  },
+  "keywords": [
+    "wallpaper",
+    "firmament",
+    "linux",
+    "ubuntu"
+  ],
+  "bugs": {
+    "url": "https://github.com/Pascal-Flores/Firmament/issues"
+  },
+  "homepage": "https://github.com/Pascal-Flores/Firmament#readme"
 }

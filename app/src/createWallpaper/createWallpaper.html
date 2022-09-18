@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="createWallpaper.css" >
+        <meta charset="utf-8" >
+    </head>
+    <body>
+        <form name="import" action="sendRequest"></form>
+        <ul>
+            <li id="wallpaperTypes">
+                <label>Type of wallpaper</label>
+                <div>
+                    <input type="radio" id="image" name="fileType" value="image" onclick="changeFilePath (this.value)" form="import">
+                    <label for="image">Image</label>
+                    <input type="radio" id="video" name="fileType" value="video" onclick="changeFilePath (this.value)" form="import">
+                    <label for="video">Video</label>
+                    <input type="radio" id="HTML" name="fileType" value="HTML" onclick="changeFilePath (this.value)" form="import"> 
+                    <label for="HTML">Local HTML file</label>
+                    <input type="radio" id="URL" name="fileType" value="URL" onclick="changeFilePath (this.value)" form="import">
+                    <label for="URL">Website</label>
+                </div>
+            </li>
+            <li id="wallpaperPath">
+
+            </li>
+            <li id="wallpaperName">
+                <label for="name">Give a name to this wallpaper</label> 
+                <input type="text" id="name" name="name" required form="import"> 
+            </li>
+            <li id="wallpaperActive">
+                <label for="setAsCurrentWallpaper">Set this wallpaper as current wallpaper</label>
+                <input type="checkbox" id="setAsCurrentWallpaper" name="setAsCurrentWallpaper" form="import">
+            </li>
+            <li id="wallpaperImport">
+                <button id="send" onclick="sendRequest()">
+                    Import new wallpaper
+                </button>
+            </li>
+        </ul>
+    </form>
+    </body>
+    <script src="createWallpaper.js"></script>
+    <script src="../../scripts/createWallpaperRenderer.js"></script>
+</html>

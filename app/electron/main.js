@@ -1,9 +1,10 @@
 const { execSync } = require('child_process')
 const { info } = require('console')
-const {app, BrowserWindow, globalShortcut, screen, ipcRenderer, dialog, Tray, Menu, MenuItem } = require('electron')
+const {app, BrowserWindow, globalShortcut, screen, ipcRenderer, dialog, Tray, Menu, MenuItem, ipcMain } = require('electron')
 const { readFileSync, existsSync, mkdir, cp, close, mkdirSync, cpSync, openSync, readFile, writeFileSync} = require('fs')
 const { readSync } = require('original-fs')
 const { homedir } = require('os')
+const path = require('path')
 const { basename, dirname } = require('path')
 
 // disables the possiblity to pause audio/video of the wallpaper through os itself (notification with play/pause option). Done to avoid bloat on the notification panel
@@ -16,26 +17,42 @@ var configDirectory = homedir()+"/.firmament"
 var tray
 
 function createWallpaperWindow () {
-	wallpaperWindow = new BrowserWindow({
-		show : false,
+	let wallpaperWindow = new BrowserWindow({
 		frame : false,
 		autoHideMenuBar: true,
 		width : screen.getPrimaryDisplay().size.width,
 		height : screen.getPrimaryDisplay().size.height,
 		type : "desktop",
 		webPreferences : {
+			preload : path.join(__dirname, 'preload.js'),
 			backgroundThrottling : false,
 			enableWebSQL : false,
 		}
 	})
 	wallpaperWindow.loadFile(configDirectory+config.lastLoadedWallpaper)
-	wallpaperWindow.show()
 	return wallpaperWindow
+}
+
+function createWallpaperCreatorWindow() {
+	let wallpaperCreatorWindow = new BrowserWindow({
+		width : 800,
+		height : 600,
+		icon : "assets/icon.png",
+		webPreferences : {
+			preload : path.join(__dirname, 'preload.js'),
+		}
+	})
+	wallpaperCreatorWindow.loadFile("app/src/createWallpaper/createWallpaper.html")
+	return wallpaperCreatorWindow
 }
 
 function createPreferencesWindow () {
 
 }
+
+ipcMain.on("importWallpaper", (wallpaperFile, wallpaperName, isActive) => {
+	console.log("reçu!")
+})
 
 function doesWallpaperNeedsToBeDeactivated() {
 
@@ -161,7 +178,6 @@ function buildTrayMenu() {
 	}
 
 	let pinMenuItem
-	console.log(isCurrentWallpaperPinned())
 	if (isCurrentWallpaperPinned()) {
 		pinMenuItem = new MenuItem({label : 'Unpin this wallpaper', type : 'normal', click : unpinCurrentWallpaper})
 	}
@@ -190,7 +206,7 @@ function buildTrayMenu() {
 		{ label : 'Firmament', type : 'normal', enabled : false },
 		{ type  : 'separator'},
 		{ label : 'Change wallpaper', type : 'normal' , click : setWallpaper },
-		{ label : 'Import new wallpaper', type : 'normal', click : importWallpaper },
+		{ label : 'Import new wallpaper', type : 'normal', click : createWallpaperCreatorWindow },
 		pinMenuItem,
 		{ label : "Pinned Wallpapers", sublabel : "oui" , submenu : buildPinnedWallpapersSubMenu()},
 		{ type  : "separator"},
@@ -269,4 +285,3 @@ function loadUserConfig() {
 	
 	config = JSON.parse(readFileSync(configDirectory+"/config.json", {encoding : 'utf-8'}))
 }
-let wallpaperWindow
