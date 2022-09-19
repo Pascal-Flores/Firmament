@@ -5,10 +5,9 @@
         <meta charset="utf-8" >
     </head>
     <body>
-        <form name="import" action="sendRequest"></form>
         <ul>
             <li id="wallpaperTypes">
-                <label>Type of wallpaper</label>
+                <label for="fileType">Type of wallpaper</label>
                 <div>
                     <input type="radio" id="image" name="fileType" value="image" onclick="changeFilePath (this.value)" form="import">
                     <label for="image">Image</label>
@@ -32,12 +31,11 @@
                 <input type="checkbox" id="setAsCurrentWallpaper" name="setAsCurrentWallpaper" form="import">
             </li>
             <li id="wallpaperImport">
-                <button id="send" onclick="sendRequest()">
+                <button onclick="sendRequest()">
                     Import new wallpaper
                 </button>
             </li>
         </ul>
-    </form>
     </body>
     <script src="createWallpaper.js"></script>
     <script src="../../scripts/createWallpaperRenderer.js"></script>

@@ -23,6 +23,7 @@ function createWallpaperWindow () {
 		width : screen.getPrimaryDisplay().size.width,
 		height : screen.getPrimaryDisplay().size.height,
 		type : "desktop",
+		autoHideMenuBar : true,
 		webPreferences : {
 			preload : path.join(__dirname, 'preload.js'),
 			backgroundThrottling : false,
@@ -50,8 +51,8 @@ function createPreferencesWindow () {
 
 }
 
-ipcMain.on("importWallpaper", (wallpaperFile, wallpaperName, isActive) => {
-	console.log("reçu!")
+ipcMain.on("importWallpaper", (event, filePath, wallpaperName, isActive) => {
+	
 })
 
 function doesWallpaperNeedsToBeDeactivated() {

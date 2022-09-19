@@ -1,11 +1,9 @@
 function sendRequest() {
-    let file = document.getElementById("filePath").files[0]
+    let filePath = document.getElementById("filePath").files[0].path
     let name = document.getElementById("name").value
     let isActive = document.getElementById("setAsCurrentWallpaper").checked
 
-    electron.importWallpaper(file, name, isActive)
-
-
+    test = window.electron.importWallpaper(filePath, name, isActive)
 }
 
 function changeFilePath (value) {
