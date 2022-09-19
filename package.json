@@ -10,9 +10,12 @@
   "license": "ISC",
   "devDependencies": {
     "child_process": "^1.0.2",
-    "electron": "^20.1.4"
+    "electron": "^20.1.4",
+    "fs-extra": "^10.1.0"
   },
-  "dependencies": {},
+  "dependencies": {
+    "node-html-parser": "^6.1.0"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Pascal-Flores/Firmament.git"

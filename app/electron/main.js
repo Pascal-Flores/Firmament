@@ -2,10 +2,12 @@ const { execSync } = require('child_process')
 const { info } = require('console')
 const {app, BrowserWindow, globalShortcut, screen, ipcRenderer, dialog, Tray, Menu, MenuItem, ipcMain } = require('electron')
 const { readFileSync, existsSync, mkdir, cp, close, mkdirSync, cpSync, openSync, readFile, writeFileSync} = require('fs')
+const { copySync } = require('fs-extra')
+const { default: parse, Node } = require('node-html-parser')
 const { readSync } = require('original-fs')
 const { homedir } = require('os')
 const path = require('path')
-const { basename, dirname } = require('path')
+const { basename, dirname, extname } = require('path')
 
 // disables the possiblity to pause audio/video of the wallpaper through os itself (notification with play/pause option). Done to avoid bloat on the notification panel
 app.commandLine.appendSwitch('disable-features', 'HardwareMediaKeyHandling,MediaSessionService');
@@ -14,6 +16,7 @@ app.commandLine.appendSwitch('disable-features', 'HardwareMediaKeyHandling,Media
 var config
 var configDirectory = homedir()+"/.firmament"
 
+var wallpaperWindow
 var tray
 
 function createWallpaperWindow () {
@@ -51,8 +54,12 @@ function createPreferencesWindow () {
 
 }
 
-ipcMain.on("importWallpaper", (event, filePath, wallpaperName, isActive) => {
-	
+ipcMain.on("importWallpaper", (event, fileType, filePath, wallpaperName, isActive) => {
+	let newWallpaper = importWallpaper(fileType, filePath, wallpaperName)
+
+	if (isActive) {
+		switchWallpaper(newWallpaper)
+	}
 })
 
 function doesWallpaperNeedsToBeDeactivated() {
@@ -138,7 +145,52 @@ function switchWallpaper(pathToWallpaper) {
 }
 
 
-function importWallpaper() {
+function importWallpaper(fileType, filePath, wallpaperName) {
+	console.log(fileType)
+	const newFolder = configDirectory+'/wallpapers/'+wallpaperName+'/'
+	const newFileName = wallpaperName+extname(filePath)
+
+	try {
+		mkdirSync(newFolder)
+	}
+	catch {
+		throw "Folder already exists"
+	}
+
+	if (fileType.match("image") || fileType.match("video")) {
+
+		cpSync(filePath, newFolder+newFileName)
+		cpSync('assets/default_wallpaper.css', newFolder+wallpaperName+".css")
+
+		let htmlFile = readFileSync('assets/default_wallpaper.html')
+		let htmlContent = parse(htmlFile.toString("utf-8"))
+		htmlContent.querySelector('link').setAttribute("href", wallpaperName+".css")
+
+		if (fileType.match("image")) {
+			htmlContent.querySelector('body').set_content('<img src="'+newFileName+'" />')
+		}
+		else {
+			htmlContent.querySelector('body').set_content('<video autoplay loop><source src="'+newFileName+'"></video>')
+		}
+
+		writeFileSync(newFolder+wallpaperName+'.html', htmlContent.toString())
+
+		return newFolder+wallpaperName+".html"
+	}
+	else if (fileType.match("HTML")) {
+		copySync(dirname(filePath), newFolder)
+
+		return newFolder+basename(filePath)
+	}
+	else if (fileType.mactch("URL")) {
+		let urlFile = '[InternetShortcut]\nURL='+filePath
+		writeFileSync(newFolder+wallpaperName+".url",urlFile.toString())
+
+		return newFolder+wallpaperName+".url"
+	}
+	else {
+		throw "Something went wrong"
+	}
 
 }
 
@@ -234,7 +286,7 @@ app.whenReady().then(() => {
 
 	createTray()
 
-	let wallpaperWindow = createWallpaperWindow() 
+	wallpaperWindow = createWallpaperWindow() 
 
 
 	globalShortcut.register(config.shortcuts.import, () => {

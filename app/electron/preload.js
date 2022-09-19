@@ -1,5 +1,5 @@
 const { contextBridge, ipcRenderer } = require('electron')
 
 contextBridge.exposeInMainWorld('electron', {
-    importWallpaper : (file, name, isActive) => ipcRenderer.send('importWallpaper', file, name, isActive)
+    importWallpaper : (type, file, name, isActive) => ipcRenderer.send('importWallpaper', type, file, name, isActive)
 })

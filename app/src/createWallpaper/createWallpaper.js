@@ -1,9 +1,11 @@
 function sendRequest() {
+    let fileType = document.querySelector('input[name="fileType"]:checked').value
+    console.log(fileType)
     let filePath = document.getElementById("filePath").files[0].path
     let name = document.getElementById("name").value
     let isActive = document.getElementById("setAsCurrentWallpaper").checked
 
-    test = window.electron.importWallpaper(filePath, name, isActive)
+    test = window.electron.importWallpaper(fileType, filePath, name, isActive)
 }
 
 function changeFilePath (value) {
@@ -41,7 +43,7 @@ function changeFilePath (value) {
         case "HTML":
             label.textContent = "Choose an html file :"
             input.setAttribute("type", "file")
-            input.setAttribute("accept", "video/*")
+            input.setAttribute("accept", ".html")
 
             wallpaperPath.append(label)
             wallpaperPath.append(input)
