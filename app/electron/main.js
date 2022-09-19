@@ -27,6 +27,7 @@ function createWallpaperWindow () {
 		height : screen.getPrimaryDisplay().size.height,
 		type : "desktop",
 		autoHideMenuBar : true,
+		backgroundColor : "#000",
 		webPreferences : {
 			preload : path.join(__dirname, 'preload.js'),
 			backgroundThrottling : false,
@@ -220,7 +221,7 @@ function buildTrayMenu() {
 		let result = false
 		if (config.pinnedWallpapers.length != 0) {
 			config.pinnedWallpapers.forEach(element => {
-				if (config.lastLoadedWallpaper.toString().match(element.src.toString())) {
+				if (config.lastLoadedWallpaper.toString() == element.src.toString()) {
 					result = true
 				}
 			})
@@ -302,11 +303,54 @@ app.whenReady().then(() => {
 	})
 
 	globalShortcut.register(config.shortcuts.choose, () => {
-		
+		setWallpaper()
 	})
 
 	globalShortcut.register(config.shortcuts.quit, () => {
 		app.quit()
+	})
+
+	globalShortcut.register(config.shortcuts.nextPinnedWallpaper, () => {
+		checkConfigIntegrity()
+
+		if (config.pinnedWallpapers.length != 0) {
+			let indexOfPinnedWallpaper = 0
+			config.pinnedWallpapers.forEach(pinnedWallpaper => {
+				if (pinnedWallpaper.src.match(config.lastLoadedWallpaper)) {
+					indexOfPinnedWallpaper = config.pinnedWallpapers.indexOf(pinnedWallpaper)
+				}
+			})
+	
+			if (indexOfPinnedWallpaper == config.pinnedWallpapers.length-1) {
+				switchWallpaper(configDirectory+config.pinnedWallpapers[0].src)
+	
+			}
+			else {
+				switchWallpaper(configDirectory+config.pinnedWallpapers[indexOfPinnedWallpaper+1].src)
+			}
+		}
+		
+	})
+
+	globalShortcut.register(config.shortcuts.prevPinnedWallpaper, () => {
+		checkConfigIntegrity()
+
+		if (config.pinnedWallpapers.length != 0) {
+			let indexOfPinnedWallpaper = 0
+			config.pinnedWallpapers.forEach(pinnedWallpaper => {
+				if (pinnedWallpaper.src.match(config.lastLoadedWallpaper)) {
+					indexOfPinnedWallpaper = config.pinnedWallpapers.indexOf(pinnedWallpaper)
+				}
+			})
+	
+			if (indexOfPinnedWallpaper == 0) {
+				switchWallpaper(configDirectory+config.pinnedWallpapers[config.pinnedWallpapers.length-1].src)
+			}
+			else {
+				switchWallpaper(configDirectory+config.pinnedWallpapers[indexOfPinnedWallpaper-1].src)
+			}
+		}
+		
 	})
 } )
 
@@ -316,7 +360,7 @@ app.on('will-quit', () => {
 	writeFileSync(configDirectory+"/config.json", JSON.stringify(config, null, 4), "utf-8",)
 })
 
-function checkConfigIntegrity() {
+function checkUserFilesIntegrity() {
 	if (!existsSync(configDirectory)) 					
 		mkdirSync(configDirectory)
 	if (!existsSync(configDirectory+"/wallpapers/")) 	
@@ -333,8 +377,23 @@ function checkConfigIntegrity() {
 		cpSync("assets/default_config.json", configDirectory+"/config.json")
 }
 
+function checkConfigIntegrity() {
+	for(let pinnedWallpaperIndex = 0; pinnedWallpaperIndex < config.pinnedWallpapers.length; ++pinnedWallpaperIndex) {
+		if (!existsSync(configDirectory+config.pinnedWallpapers[pinnedWallpaperIndex].src)){
+			config.pinnedWallpapers.splice(pinnedWallpaperIndex, 1)
+			--pinnedWallpaperIndex
+		}
+	}
+	saveConfig()
+}
+
 function loadUserConfig() {
-	checkConfigIntegrity()
+	checkUserFilesIntegrity()
 	
 	config = JSON.parse(readFileSync(configDirectory+"/config.json", {encoding : 'utf-8'}))
+	if (!existsSync(configDirectory+config.lastLoadedWallpaper)) {
+		config.lastLoadedWallpaper = '/wallpapers/default/default_wallpaper.html'
+	}
+
+	checkConfigIntegrity()
 }
