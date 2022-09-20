@@ -1,7 +1,14 @@
 function sendRequest() {
     let fileType = document.querySelector('input[name="fileType"]:checked').value
     console.log(fileType)
-    let filePath = document.getElementById("filePath").files[0].path
+    let filePath
+    if (fileType == "URL") {
+        filePath = document.getElementById("filePath").value
+        console.log(filePath)
+    }
+    else {
+         filePath = document.getElementById("filePath").files[0].path
+    }
     let name = document.getElementById("name").value
     let isActive = document.getElementById("setAsCurrentWallpaper").checked
 
