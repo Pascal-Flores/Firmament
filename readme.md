@@ -1,5 +1,5 @@
 # Roadmap pour la 1.0 :
-+ pouvoir load les .url
++ pouvoir load les .url --> Done
 + sanitize les shortcuts
 + sanitize la page d'import
 + faire et sanitize la page de préférences
