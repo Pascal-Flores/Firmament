@@ -9,7 +9,7 @@
             <li id="wallpaperTypes">
                 <label for="fileType">Type of wallpaper</label>
                 <div>
-                    <input type="radio" id="image" name="fileType" value="image" onclick="changeFilePath ("image") form="import">
+                    <input type="radio" id="image" name="fileType" value="image" onclick="changeFilePath (this.value)" form="import">
                     <label for="image">Image</label>
                     <input type="radio" id="video" name="fileType" value="video" onclick="changeFilePath (this.value)" form="import">
                     <label for="video">Video</label>

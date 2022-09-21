@@ -9,6 +9,7 @@
   "author": "Pascal Flores",
   "license": "ISC",
   "devDependencies": {
+    "@electron/remote": "^2.0.8",
     "child_process": "^1.0.2",
     "electron": "^20.1.4",
     "fs-extra": "^10.1.0"

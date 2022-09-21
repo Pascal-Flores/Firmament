@@ -4,7 +4,6 @@ function sendRequest() {
     let filePath
     if (fileType == "URL") {
         filePath = document.getElementById("filePath").value
-        console.log(filePath)
     }
     else {
          filePath = document.getElementById("filePath").files[0].path

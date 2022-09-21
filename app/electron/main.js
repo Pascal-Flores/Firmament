@@ -38,6 +38,7 @@ var config
 var configDirectory = homedir()+"/.firmament"
 
 var wallpaperWindow
+var wallapperWindowPID
 var tray
 
 
@@ -138,7 +139,8 @@ function setWallpaper() {
 		defaultPath : configDirectory+"/wallpapers/",
 		properties : ['openFile'], 
 		filters : [
-			{name : 'HTML', extensions : ['html']}
+			{name : 'WEB', extensions : ['html', 'url']}
+
 		]}).then((promiseResult) => { 
 			// and then we switch the wallpaper by giving the new wallpaper file path obtained thanks to the dialog window
 			if (promiseResult !== undefined) {
@@ -353,6 +355,10 @@ ipcMain.on("importWallpaper", (event, fileType, filePath, wallpaperName, isActiv
 	}
 })
 
+ipcMain.on("wallpaperWindowPID", (event, pid) => {
+	wallapperWindowPID = pid
+	console.log(pid)
+})
 /**
  * Checks if the wallpaper window is currently completely hidden behind any system window
  * @returns {bool} true if the window is hidden, false otherwise
@@ -409,7 +415,9 @@ function doesWallpaperNeedsToBeDeactivated() {
 		}
 	}
 	
-	if (maximizedWindows.length != 0) return true
+	if (maximizedWindows.length != 0) {
+		return true
+	}
 	else {
 			
 		return false
@@ -439,15 +447,7 @@ app.whenReady().then(() => {
 
 
 	globalShortcut.register(config.shortcuts.import, () => {
-		dialog.showOpenDialog({
-			title : "Import new wallpaper",
-			defaultPath : homedir(),
-			properties : ['openFile'], 
-			filters : [
-				{name : 'Images', extensions : ['gif']},
-				{name : 'Movies', extensions : ['mp4', 'mkv', 'avi', 'mov']},
-				{name : 'HTML', extensions : ['html']}
-			]}).then((path) => importWallpaper(path))
+		createWallpaperCreatorWindow()
 	})
 
 	globalShortcut.register(config.shortcuts.choose, () => {
@@ -459,7 +459,7 @@ app.whenReady().then(() => {
 	})
 
 	globalShortcut.register(config.shortcuts.nextPinnedWallpaper, () => {
-		checkConfigIntegrity()
+		checkUserPinsIntegrity()
 
 		if (config.pinnedWallpapers.length != 0) {
 			let indexOfPinnedWallpaper = 0
@@ -481,7 +481,7 @@ app.whenReady().then(() => {
 	})
 
 	globalShortcut.register(config.shortcuts.prevPinnedWallpaper, () => {
-		checkConfigIntegrity()
+		checkUserPinsIntegrity()
 
 		if (config.pinnedWallpapers.length != 0) {
 			let indexOfPinnedWallpaper = 0
@@ -534,7 +534,22 @@ function checkUserFilesIntegrity() {
 		cpSync("assets/default_config.json", configDirectory+"/config.json")
 }
 
-function checkConfigIntegrity() {
+function checkUserShortcutsIntegrity() {
+	if(!isAccelerator(config.shortcuts.import))
+		config.shortcuts.import = "Super+F+I"
+	if(!isAccelerator(config.shortcuts.choose))
+		config.shortcuts.choose = "Super+F+C"
+	if(!isAccelerator(config.shortcuts.quit))
+		config.shortcuts.quit = "Super+F+Q"
+	if(!isAccelerator(config.shortcuts.nextPinnedWallpaper))
+		config.shortcuts.nextPinnedWallpaper = "Super+F+Right"
+	if(!isAccelerator(config.shortcuts.prevPinnedWallpaper))
+		config.shortcuts.prevPinnedWallpaper = "Super+F+Left"
+
+	saveUserConfig()
+}
+
+function checkUserPinsIntegrity() {
 	for(let pinnedWallpaperIndex = 0; pinnedWallpaperIndex < config.pinnedWallpapers.length; ++pinnedWallpaperIndex) {
 		if (!existsSync(configDirectory+config.pinnedWallpapers[pinnedWallpaperIndex].src)){
 			config.pinnedWallpapers.splice(pinnedWallpaperIndex, 1)
@@ -551,10 +566,38 @@ function loadUserConfig() {
 	if (!existsSync(configDirectory+config.lastLoadedWallpaper)) {
 		config.lastLoadedWallpaper = '/wallpapers/default/default_wallpaper.html'
 	}
-
-	checkConfigIntegrity()
+	checkUserShortcutsIntegrity()
+	checkUserPinsIntegrity()
 }
 
 function saveUserConfig() {
 	writeFileSync(configDirectory+"/config.json", JSON.stringify(config, null, 4), "utf-8",)
 }
+
+/*
+           _          
+          (_)         
+ _ __ ___  _ ___  ___ 
+| '_ ` _ \| / __|/ __|
+| | | | | | \__ \ (__ 
+|_| |_| |_|_|___/\___|              
+*/
+
+const keyCodes = /^([0-9A-Z)!@#$%^&*(:+<_>?~{|}";=,\-./`[\\\]']|F1*[1-9]|F10|F2[0-4]|Plus|Space|Tab|Capslock|Numlock|Backspace|Delete|Insert|Return|Enter|Up|Down|Left|Right|Home|End|PageUp|PageDown|Escape|Esc|VolumeUp|VolumeDown|VolumeMute|MediaNextTrack|MediaPreviousTrack|MediaStop|MediaPlayPause|PrintScreen|num[0-9]|numdec|numadd|numsub|nummult|numdiv)$/;
+const modifiers = /^(Command|Cmd|Control|Ctrl|CommandOrControl|CmdOrCtrl|Alt|Option|AltGr|Shift|Super)$/
+function isAccelerator(maybeAccelerator) {
+	if (maybeAccelerator.charAt(0) == '+' || maybeAccelerator.charAt(maybeAccelerator.length-1) == '+')
+		return false
+
+	let splitAccelerator = maybeAccelerator.split('+')
+	let result = true
+	if (!modifiers.test(splitAccelerator[0])){
+		return false
+	}
+	splitAccelerator.forEach(element => {
+		 if (!(keyCodes.test(element) || modifiers.test(element)))
+		 	result = false
+	})
+
+	return result
+ }
