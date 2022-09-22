@@ -1,12 +1,14 @@
+const { isRemoteModuleEnabled, enable } = require('@electron/remote/dist/src/main/server')
 const { execSync } = require('child_process')
-const {app, BrowserWindow, globalShortcut, screen, ipcRenderer, dialog, Tray, Menu, MenuItem, ipcMain } = require('electron')
-const { readFileSync, existsSync, mkdir, cp, close, mkdirSync, cpSync, openSync, readFile, writeFileSync} = require('fs')
+const {app, BrowserWindow, webContents, globalShortcut, screen, dialog, Tray, Menu, MenuItem, ipcMain } = require('electron')
+const { readFileSync, existsSync, mkdirSync, cpSync, writeFileSync} = require('fs')
 const { copySync } = require('fs-extra')
 const { default: parse, Node } = require('node-html-parser')
-const { readSync } = require('original-fs')
 const { homedir } = require('os')
 const path = require('path')
 const { basename, dirname, extname } = require('path')
+
+require('@electron/remote/main').initialize()
 
 /*
                   | |                                   / _(_)      
@@ -38,7 +40,7 @@ var config
 var configDirectory = homedir()+"/.firmament"
 
 var wallpaperWindow
-var wallapperWindowPID
+var wallapperWindowProcess
 var tray
 
 
@@ -356,7 +358,7 @@ ipcMain.on("importWallpaper", (event, fileType, filePath, wallpaperName, isActiv
 })
 
 ipcMain.on("wallpaperWindowPID", (event, pid) => {
-	wallapperWindowPID = pid
+	wallpaperWindow = pid
 	console.log(pid)
 })
 /**
@@ -444,7 +446,8 @@ app.whenReady().then(() => {
 	createTray()
 
 	wallpaperWindow = createWallpaperWindow() 
-
+	wallapperWindowProcess = wallpaperWindow.webContents.getProcessId()
+	console.log(wallapperWindowProcess)
 
 	globalShortcut.register(config.shortcuts.import, () => {
 		createWallpaperCreatorWindow()
@@ -480,6 +483,12 @@ app.whenReady().then(() => {
 		
 	})
 
+	globalShortcut.register("Super+F+P", () => {
+		wallapperWindowProcess.kill('SIGSTOP')
+	})
+	globalShortcut.register("Super+F+R", () => {
+		wallapperWindowProcess.kill('SIGCONT')
+	})
 	globalShortcut.register(config.shortcuts.prevPinnedWallpaper, () => {
 		checkUserPinsIntegrity()
 

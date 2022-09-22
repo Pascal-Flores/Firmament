@@ -1,17 +1,46 @@
 function sendRequest() {
-    let fileType = document.querySelector('input[name="fileType"]:checked').value
-    console.log(fileType)
-    let filePath
+    
+    let fileType, filePath, name, isActive
+    
+    document.querySelectorAll(".error").forEach(element => {
+        element.remove()
+    })
+
+    if (document.querySelector('input[name="fileType"]:checked') == null) {
+        document.querySelector('#wallpaperTypes').appendChild(createErrorLabel("You need to select a file type"))
+        return
+    }
+    fileType = document.querySelector('input[name="fileType"]:checked').value
+
     if (fileType == "URL") {
-        filePath = document.getElementById("filePath").value
+        filePath = document.querySelector("#filePath").value
+        if (filePath.length == 0) {
+            document.querySelector('#wallpaperPath').appendChild(createErrorLabel("The field cannot be empty"))
+            return
+        }
+        else {
+            if(!(filePath.includes('http://') && filePath.includes('https://'))) {
+                
+            }
+        } 
     }
     else {
-         filePath = document.getElementById("filePath").files[0].path
+         filePath = document.querySelector("#filePath").files[0].path
     }
-    let name = document.getElementById("name").value
-    let isActive = document.getElementById("setAsCurrentWallpaper").checked
+    name = document.querySelector("#name").value
+    isActive = document.querySelector("#setAsCurrentWallpaper").checked
+
 
     test = window.electron.importWallpaper(fileType, filePath, name, isActive)
+}
+
+
+function createErrorLabel(text) {
+    let errorNode = document.createElement("label")
+    errorNode.setAttribute("class", "error")
+    errorNode.style.color = "red"
+    errorNode.textContent = text
+    return errorNode
 }
 
 function changeFilePath (value) {
