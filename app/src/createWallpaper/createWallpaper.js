@@ -15,19 +15,34 @@ function sendRequest() {
     if (fileType == "URL") {
         filePath = document.querySelector("#filePath").value
         if (filePath.length == 0) {
-            document.querySelector('#wallpaperPath').appendChild(createErrorLabel("The field cannot be empty"))
+            document.querySelector('#wallpaperPath').appendChild(createErrorLabel("Please specify a URL"))
             return
         }
         else {
             if(!(filePath.includes('http://') && filePath.includes('https://'))) {
-                
+                filePath = 'http://' + document.querySelector("#filePath").value
+            }
+            else {
+                filePath = document.querySelector("#filePath").value
             }
         } 
     }
     else {
-         filePath = document.querySelector("#filePath").files[0].path
+        if (document.querySelector('#filePath').files.length == 0){
+            document.querySelector('#wallpaperPath').appendChild(createErrorLabel("Please select a file"))
+            return
+        }
+        else {
+            filePath = document.querySelector("#filePath").files[0].path
+        }
     }
+
     name = document.querySelector("#name").value
+    if(name.length == 0) {
+        document.querySelector('#wallpaperName').appendChild(createErrorLabel("Please give a name to your wallpaper"))
+        return
+    }
+    
     isActive = document.querySelector("#setAsCurrentWallpaper").checked
 
 

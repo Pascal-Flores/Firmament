@@ -1,5 +1,4 @@
-const { isRemoteModuleEnabled, enable } = require('@electron/remote/dist/src/main/server')
-const { execSync } = require('child_process')
+const { execSync, exec } = require('child_process')
 const {app, BrowserWindow, webContents, globalShortcut, screen, dialog, Tray, Menu, MenuItem, ipcMain } = require('electron')
 const { readFileSync, existsSync, mkdirSync, cpSync, writeFileSync} = require('fs')
 const { copySync } = require('fs-extra')
@@ -7,8 +6,9 @@ const { default: parse, Node } = require('node-html-parser')
 const { homedir } = require('os')
 const path = require('path')
 const { basename, dirname, extname } = require('path')
+const { kill } = require('process')
+const { clearInterval } = require('timers')
 
-require('@electron/remote/main').initialize()
 
 /*
                   | |                                   / _(_)      
@@ -40,9 +40,10 @@ var config
 var configDirectory = homedir()+"/.firmament"
 
 var wallpaperWindow
-var wallapperWindowProcess
+var wallpaperWindowPID
 var tray
 
+var wallpaperWindowInterval
 
 
 /*
@@ -60,6 +61,7 @@ __      ___ _ __   __| | _____      _____  ___ _ __ ___  __ _| |_ _  ___  _ __ |
  */
 function createWallpaperWindow () {
 	let wallpaperWindow = new BrowserWindow({
+		show  : false,
 		frame : false,
 		autoHideMenuBar: true,
 		width : screen.getPrimaryDisplay().size.width,
@@ -361,70 +363,85 @@ ipcMain.on("wallpaperWindowPID", (event, pid) => {
 	wallpaperWindow = pid
 	console.log(pid)
 })
-/**
- * Checks if the wallpaper window is currently completely hidden behind any system window
- * @returns {bool} true if the window is hidden, false otherwise
- */
-function doesWallpaperNeedsToBeDeactivated() {
 
-	// wmctrl get all windows managed by the system desktop manager
-	let wmctrlResult = 	execSync("wmctrl -l -p -G", ).toString()
-	let windowinfos = []
 
-	/* 
-	we build the windowinfos array that stores windows informations, as the following :
-	each element of windowinfos is an array of window infos, like this :
-	windowid, z-order (0 for normal, -1 for desktop), window int id, x position, y position, width, height, name
-	*/
-	// we iterate over every non empty line from wmctrl result
-	wmctrlResult.toString().split('\n').filter(x =>x !== '').forEach(window => {
+// A refaire --> marche pas + pas adapté au multi screen
+// /**
+//  * Checks if the wallpaper window is currently completely hidden behind any system window
+//  * @returns {bool} true if the window is hidden, false otherwise
+//  */
+// function doesWallpaperNeedsToBeDeactivated() {
+
+// 	let wmctrlResult
+// 	// wmctrl get all windows managed by the system desktop manager
+// 	try {
+// 		exec("wmctrl -l -p -G", ).then((result) => {
+// 			let windowinfos = []
+
+// 			/* 
+// 			we build the windowinfos array that stores windows informations, as the following :
+// 			each element of windowinfos is an array of window infos, like this :
+// 			windowid, z-order (0 for normal, -1 for desktop), window int id, x position, y position, width, height, name
+// 			*/
+// 			// we iterate over every non empty line from wmctrl result
+// 			result.toString().split('\n').filter(x =>x !== '').forEach(window => {
 		
-		let temp = []
-		// we split the string in an array of non empty strings
-		let info = window.split(" ").filter(x => x !== '');
+// 				let temp = []
+// 				// we split the string in an array of non empty strings
+// 				let info = window.split(" ").filter(x => x !== '');
 	
-		// we put the 7 first elements of the info array into the temp array
-		for (let infoindex = 0; temp.length <= 6; ++infoindex) {
-			temp.push(info[infoindex])
-		}
+// 				// we put the 7 first elements of the info array into the temp array
+// 				for (let infoindex = 0; temp.length <= 6; ++infoindex) {
+// 					temp.push(info[infoindex])
+// 				}
 
-		// we concatenate the last elements of the info array, which correspond to the name of the window
-		temp[7] = info.slice(8, info.length).join(' ')
+// 				// we concatenate the last elements of the info array, which correspond to the name of the window
+// 				temp[7] = info.slice(8, info.length).join(' ')
 
-		// we remove the windows that are Firmament itself
-		if (temp[7] != "Firmament") {
-			windowinfos.push(temp)
-		}
-	})
+// 				// we remove the windows that are Firmament itself
+// 				if (temp[7] != "Firmament") {
+// 					windowinfos.push(temp)
+// 				}
+// 			})
 
-	let notHiddenWindows = []
-	let maximizedWindows = []
+// 			let notHiddenWindows = []
+// 			let maximizedWindows = []
 	
-	// now we check for maximized windows and hidden windows
-	for (let i = 0; i < windowinfos.length; ++i) {
-		
-		/*
-		xwininfo gives informations about a precise window given with -id, 
-		and the -wm option gives window anager related informations about the window manager (type of window, position, etc...)
-		*/
-		let temp = execSync('xwininfo -wm -id '+windowinfos[i][0]).toString()
-
-		if (!temp.includes("Hidden")) {
-			notHiddenWindows.push(windowinfos[i])
-			if (temp.includes("Maximized Horz") && temp.includes("Maximized Vert")) {
-				maximizedWindows.push(windowinfos[i])
-			}
-		}
-	}
-	
-	if (maximizedWindows.length != 0) {
-		return true
-	}
-	else {
+// 			// now we check for maximized windows and hidden windows
+// 			for (let i = 0; i < windowinfos.length; ++i) {
+// 				let temp
 			
-		return false
-	}
-}
+// 				/*
+// 				xwininfo gives informations about a precise window given with -id, 
+// 				and the -wm option gives window anager related informations about the window manager (type of window, position, etc...)
+// 				*/
+// 				try {
+// 					exec('xwininfo -wm -id '+windowinfos[i][0]).then((result) => {
+// 						if (!result.includes("Hidden")) {
+// 							notHiddenWindows.push(windowinfos[i])
+// 							if (temp.includes("Maximized Horz") && temp.includes("Maximized Vert")) {
+// 								maximizedWindows.push(windowinfos[i])
+// 							}
+// 						}
+// 					})
+// 				}
+// 				catch{
+					
+// 				}
+// 			}
+// 			if (maximizedWindows.length != 0) {
+// 				return true
+// 			}
+// 			else {	
+// 				return false
+// 			}
+// 		})
+// 	}
+// 	catch {
+// 		return true
+// 	}
+// }
+
 
 
 
@@ -445,9 +462,14 @@ app.whenReady().then(() => {
 
 	createTray()
 
-	wallpaperWindow = createWallpaperWindow() 
-	wallapperWindowProcess = wallpaperWindow.webContents.getProcessId()
-	console.log(wallapperWindowProcess)
+	wallpaperWindow = createWallpaperWindow()
+	wallpaperWindow.once('ready-to-show', () => {
+		wallpaperWindow.show()
+		wallpaperWindowPID = wallpaperWindow.webContents.getOSProcessId()
+	}) 
+
+
+	
 
 	globalShortcut.register(config.shortcuts.import, () => {
 		createWallpaperCreatorWindow()
@@ -483,12 +505,6 @@ app.whenReady().then(() => {
 		
 	})
 
-	globalShortcut.register("Super+F+P", () => {
-		wallapperWindowProcess.kill('SIGSTOP')
-	})
-	globalShortcut.register("Super+F+R", () => {
-		wallapperWindowProcess.kill('SIGCONT')
-	})
 	globalShortcut.register(config.shortcuts.prevPinnedWallpaper, () => {
 		checkUserPinsIntegrity()
 
@@ -511,7 +527,10 @@ app.whenReady().then(() => {
 	})
 } )
 
-app.on('will-quit', () => saveUserConfig())
+app.on('will-quit', () => {
+	saveUserConfig()
+	clearInterval(wallpaperWindowInterval)
+})
 
 
 
