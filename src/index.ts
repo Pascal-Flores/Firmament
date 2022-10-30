@@ -7,16 +7,17 @@ import { WallpaperWindow } from "./modules/WallpaperWindow.class";
 process.env.CONFIG_DIRECTORY = `${homedir()}/.firmament`;
 
 function initApp() : void {
+
+    UserConfiguration.sanitizeUserConfigurationDirectory();
     try {
         UserConfiguration.loadUserConfiguration()
-        console.log(UserConfiguration.content.currentWallpaper)
     }
-    catch (error){
-        console.log(`Fin frérot, tu es cringe : ${error}`);
+    catch {
+        console.log(`user configuration could not be loaded at all. Firmament will quit.`);
         app.quit();
     }
 
-    let currentWallpaper : Wallpaper = new Wallpaper(UserConfiguration.content['currentWallpaper'], WallpaperType.HTML)
+    let currentWallpaper : Wallpaper = new Wallpaper(UserConfiguration.content['currentWallpaper'], WallpaperType.HTML);
     let mainWallpaper : WallpaperWindow = new WallpaperWindow(screen.getPrimaryDisplay(), currentWallpaper); 
     
 }
