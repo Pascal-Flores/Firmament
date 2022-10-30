@@ -2,9 +2,10 @@
   "name": "firmament",
   "version": "1.0.0",
   "description": "A lightweight unix wallpaper manager",
-  "main": "app/electron/main.js",
+  "main": "./dist/index.js",
   "scripts": {
-    "start": "electron ."
+    "build" : "tsc",
+    "start": "npm run build && electron ."
   },
   "author": "Pascal Flores",
   "license": "ISC",
@@ -15,7 +16,8 @@
     "fs-extra": "^10.1.0"
   },
   "dependencies": {
-    "node-html-parser": "^6.1.0"
+    "node-html-parser": "^6.1.0",
+    "typescript": "^4.8.4"
   },
   "repository": {
     "type": "git",
