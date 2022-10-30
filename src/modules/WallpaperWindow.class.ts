@@ -29,10 +29,10 @@ export class WallpaperWindow extends BrowserWindow {
     public setWallpaper (wallpaper : Wallpaper) : void {
         switch (wallpaper.type) {
             case WallpaperType.HTML :
-                this.loadFile(wallpaper.path);
+                this.loadFile(wallpaper.path.toString());
                 break;
             case WallpaperType.URL : 
-                this.loadURL(getURLFromFile(wallpaper.path));
+                this.loadURL(getURLFromFile(wallpaper.path.toString()));
                 break;
         }
     }
