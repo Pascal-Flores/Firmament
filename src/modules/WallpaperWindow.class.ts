@@ -22,6 +22,8 @@ export class WallpaperWindow extends BrowserWindow {
 
         if (wallpaper)
             this.setWallpaper(wallpaper);
+        
+        this.once('ready-to-show', this.show);
     }
 
     public setWallpaper (wallpaper : Wallpaper) : void {
