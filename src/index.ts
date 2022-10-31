@@ -8,7 +8,21 @@ process.env.CONFIG_DIRECTORY = `${homedir()}/.firmament`;
 
 function initApp() : void {
 
+    loadConfiguration();
+
+    let currentWallpaper : Wallpaper = new Wallpaper(UserConfiguration.content['currentWallpaper'], WallpaperType.HTML);
+    let mainWallpaper : WallpaperWindow = new WallpaperWindow(screen.getPrimaryDisplay(), currentWallpaper); 
+
+    
+    
+}
+
+app.whenReady().then(initApp);
+
+function loadConfiguration() : void {
+
     UserConfiguration.sanitizeUserConfigurationDirectory();
+    
     try {
         UserConfiguration.loadUserConfiguration()
     }
@@ -17,9 +31,5 @@ function initApp() : void {
         app.quit();
     }
 
-    let currentWallpaper : Wallpaper = new Wallpaper(UserConfiguration.content['currentWallpaper'], WallpaperType.HTML);
-    let mainWallpaper : WallpaperWindow = new WallpaperWindow(screen.getPrimaryDisplay(), currentWallpaper); 
-    
+    UserConfiguration.sanitizeUserConfigurationShortcuts();
 }
-
-app.whenReady().then(initApp);
