@@ -1,5 +1,6 @@
 import { cpSync, existsSync, mkdirSync, PathLike } from "original-fs";
 import {resolve, dirname} from "path"
+import { isAccelerator } from "./isAccelerator";
 import { parseJSONFromFile, writeJSONToFile } from "./JSONFromTo";
 
 export class UserConfiguration {
@@ -45,15 +46,46 @@ export class UserConfiguration {
         if (!existsSync(`${cd}/wallpapers/default_wallpaper.mp4`))
             cpSync(resolve(__dirname, '../../assets/default_wallpaper.mp4'), `${cd}/wallpapers/default/default_wallpaper.mp4`);
     }
+
+    public static sanitizeUserConfigurationShortcuts() : void {
+
+        if (UserConfiguration.content.shortcuts.import === undefined || 
+            !isAccelerator(UserConfiguration.content.shortcuts.import))
+            UserConfiguration.content.shortcuts.import = "Super+F+I";
+
+        if (UserConfiguration.content.shortcuts.choose === undefined || 
+            !isAccelerator(UserConfiguration.content.shortcuts.choose))
+            UserConfiguration.content.shortcuts.choose = "Super+F+C";
+
+        if (UserConfiguration.content.shortcuts.quit === undefined || 
+            !isAccelerator(UserConfiguration.content.shortcuts.quit))
+            UserConfiguration.content.shortcuts.quit = "Super+F+Q";
+
+        if (UserConfiguration.content.shortcuts.previousPinnedWallpaper === undefined || 
+            !isAccelerator(UserConfiguration.content.shortcuts.previousPinnedWallpaper))
+            UserConfiguration.content.shortcuts.previousPinnedWallpaper = "Super+F+Left";
+
+        if (UserConfiguration.content.shortcuts.nextPinnedWallpaper === undefined || 
+            !isAccelerator(UserConfiguration.content.shortcuts.nextPinnedWallpaper))
+            UserConfiguration.content.shortcuts.nextPinnedWallpaper = "Super+F+Right";
+    }
 }
 
 type ConfigurationContent = {
     currentWallpaper : PathLike;
-    shortcuts : string[];
+    shortcuts : Shortcut;
     pinnedWallpapers : Pin[];
 }
 
 type Pin = {
     name : string;
     src : PathLike; 
+}
+
+type Shortcut = {
+    import : string;
+    choose : string;
+    quit : string;
+    previousPinnedWallpaper : string;
+    nextPinnedWallpaper : string;
 }
