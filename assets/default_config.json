@@ -4,9 +4,8 @@
         "import" : "Super+F+I",
         "choose" : "Super+F+C",
         "quit" : "Super+F+Q",
-        "nextPinnedWallpaper" : "Super+F+Right",
-        "prevPinnedWallpaper" : "Super+F+Left"
-
+        "previousPinnedWallpaper" : "Super+F+Left",
+        "nextPinnedWallpaper" : "Super+F+Right"
     },
     "pinnedWallpapers" : [
 
