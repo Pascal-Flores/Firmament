@@ -83,6 +83,23 @@ export class UserConfiguration {
             if (!existsSync(UserConfiguration.content.currentWallpaper))
                 UserConfiguration.content.currentWallpaper = defaultWallpaper;
     }
+
+    public static sanitizePins() : void {
+        let defaultPins : Pin[] = [];
+
+        if (UserConfiguration.content.pinnedWallpapers === undefined)
+            UserConfiguration.content.pinnedWallpapers = defaultPins;
+        else {
+            if (UserConfiguration.content.pinnedWallpapers.length > 0) 
+                UserConfiguration.content.pinnedWallpapers.forEach(function(pin : Pin, pinIndex : number) {
+                    if (pin.name === undefined || pin.src === undefined)
+                        UserConfiguration.content.pinnedWallpapers.splice(pinIndex);
+                    else
+                        if (!existsSync(pin.src))
+                            UserConfiguration.content.pinnedWallpapers.splice(pinIndex);
+                })
+        }
+    }
     // private
     private static removeInvalidFields(configuration : any) : ConfigurationContent {
         let defaultConfiguration : ConfigurationContent = parseJSONFromFile(resolve(__dirname, '../../assets/default_config.json'));
