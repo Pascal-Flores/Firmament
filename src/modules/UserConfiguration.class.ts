@@ -10,7 +10,7 @@ export class UserConfiguration {
         if (!process.env.CONFIG_DIRECTORY)
             throw new Error('Attempt to load configuration before config directory path definition!');
         try {
-            UserConfiguration.content = parseJSONFromFile(`${process.env.CONFIG_DIRECTORY}/config.json`);
+            UserConfiguration.content = UserConfiguration.removeInvalidFields(parseJSONFromFile(`${process.env.CONFIG_DIRECTORY}/config.json`));
         }
         catch (error){
             console.log(`Error during configuration loading :\n\t ${error}\n Restoring default configuration`);
@@ -48,32 +48,46 @@ export class UserConfiguration {
     }
 
     public static sanitizeUserConfigurationShortcuts() : void {
+        
+        let defaultShortcuts : ShortcutList = parseJSONFromFile(resolve(__dirname, '../../assets/default_config.json')).shortcuts;
+        
+        if (UserConfiguration.content.shortcuts === undefined) {
+            UserConfiguration.content.shortcuts = defaultShortcuts;
+        }
+        else {
 
-        if (UserConfiguration.content.shortcuts.import === undefined || 
-            !isAccelerator(UserConfiguration.content.shortcuts.import))
-            UserConfiguration.content.shortcuts.import = "Super+F+I";
+            // removes all the properties that are not specified in the ShortcutList type
+            Object.keys(UserConfiguration.content.shortcuts).forEach(key => {
+                if (!Object.keys(defaultShortcuts).includes(key))
+                    delete UserConfiguration.content.shortcuts[key as keyof ShortcutList];
+            });
 
-        if (UserConfiguration.content.shortcuts.choose === undefined || 
-            !isAccelerator(UserConfiguration.content.shortcuts.choose))
-            UserConfiguration.content.shortcuts.choose = "Super+F+C";
+            // adds all the missing properties from the ShortcutList type
+            Object.keys(defaultShortcuts).forEach(key => {
+                if (UserConfiguration.content.shortcuts[key as keyof ShortcutList] === undefined ||
+                    !isAccelerator(UserConfiguration.content.shortcuts[key as keyof ShortcutList])) {
+                    UserConfiguration.content.shortcuts[key as keyof ShortcutList] = defaultShortcuts[key as keyof ShortcutList];
+                }
+            });
+        }
+    }
 
-        if (UserConfiguration.content.shortcuts.quit === undefined || 
-            !isAccelerator(UserConfiguration.content.shortcuts.quit))
-            UserConfiguration.content.shortcuts.quit = "Super+F+Q";
+    private static removeInvalidFields(configuration : any) : ConfigurationContent {
+        let defaultConfiguration : ConfigurationContent = parseJSONFromFile(resolve(__dirname, '../../assets/default_config.json'));
+        
+        // removes from configurationToSanitize all the properties that do not belong to the UserConfiguration type
+        Object.keys(configuration).forEach(key => {
+            if (!Object.keys(defaultConfiguration).includes(key))
+                delete configuration[key];
+        });
 
-        if (UserConfiguration.content.shortcuts.previousPinnedWallpaper === undefined || 
-            !isAccelerator(UserConfiguration.content.shortcuts.previousPinnedWallpaper))
-            UserConfiguration.content.shortcuts.previousPinnedWallpaper = "Super+F+Left";
-
-        if (UserConfiguration.content.shortcuts.nextPinnedWallpaper === undefined || 
-            !isAccelerator(UserConfiguration.content.shortcuts.nextPinnedWallpaper))
-            UserConfiguration.content.shortcuts.nextPinnedWallpaper = "Super+F+Right";
+        return configuration;
     }
 }
 
 type ConfigurationContent = {
     currentWallpaper : PathLike;
-    shortcuts : Shortcut;
+    shortcuts : ShortcutList;
     pinnedWallpapers : Pin[];
 }
 
@@ -82,7 +96,7 @@ type Pin = {
     src : PathLike; 
 }
 
-type Shortcut = {
+type ShortcutList = {
     import : string;
     choose : string;
     quit : string;
