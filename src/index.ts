@@ -29,7 +29,7 @@ app.on('will-quit', exitApp);
 
 function loadConfiguration() : void {
 
-    UserConfiguration.sanitizeUserConfigurationDirectory();
+    UserConfiguration.sanitizeConfigurationDirectory();
     
     try {
         UserConfiguration.loadUserConfiguration()
@@ -39,7 +39,8 @@ function loadConfiguration() : void {
         app.quit();
     }
 
-    UserConfiguration.sanitizeUserConfigurationShortcuts();
+    UserConfiguration.sanitizeCurrentWallpaper();
+    UserConfiguration.sanitizeShortcuts();
 
     console.log(JSON.stringify(UserConfiguration.content, null, 4));
 }
