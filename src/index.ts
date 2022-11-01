@@ -41,6 +41,7 @@ function loadConfiguration() : void {
 
     UserConfiguration.sanitizeCurrentWallpaper();
     UserConfiguration.sanitizeShortcuts();
+    UserConfiguration.sanitizePins();
 
     console.log(JSON.stringify(UserConfiguration.content, null, 4));
 }
