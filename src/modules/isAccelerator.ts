@@ -2,7 +2,6 @@ const keyCodes : RegExp = /^([0-9A-Z)!@#$%^&*(:+<_>?~{|}";=,\-./`[\\\]']|F1*[1-9
 const modifiers : RegExp = /^(Command|Cmd|Control|Ctrl|CommandOrControl|CmdOrCtrl|Alt|Option|AltGr|Shift|Super)$/
 
 export function isAccelerator(maybeAccelerator : string) : boolean{
-    console.log(maybeAccelerator);
 	if (maybeAccelerator.charAt(0) == '+' || maybeAccelerator.charAt(maybeAccelerator.length-1) == '+')
 		return false;
 
