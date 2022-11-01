@@ -3,7 +3,7 @@
     "shortcuts" : {
         "import" : "Super+F+I",
         "choose" : "Super+F+C",
-        "quit" : "Super+F+Q",
+        "quit" : "Super+Alt+Q",
         "previousPinnedWallpaper" : "Super+F+Left",
         "nextPinnedWallpaper" : "Super+F+Right"
     },
