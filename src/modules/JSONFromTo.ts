@@ -11,7 +11,7 @@ export function parseJSONFromFile(filePath : PathLike) {
 
 export function writeJSONToFile(filePath : PathLike, content : Object) {
     try {
-        writeFileSync(filePath, JSON.stringify(content));
+        writeFileSync(filePath, JSON.stringify(content, null, 4));
     }
     catch (error){
         console.log(`Error during file wrte :\n\t${error}\n`);
