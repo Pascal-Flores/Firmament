@@ -1,4 +1,4 @@
-import {app, ipcMain, BrowserWindow, screen, Screen, Display} from "electron";
+import {app, ipcMain, BrowserWindow, screen, Screen, Display, globalShortcut} from "electron";
 import { homedir } from 'os'
 import { UserConfiguration } from "./modules/UserConfiguration.class";
 import { Wallpaper, WallpaperType } from "./modules/Wallpaper.class";
@@ -13,11 +13,19 @@ function initApp() : void {
     let currentWallpaper : Wallpaper = new Wallpaper(UserConfiguration.content['currentWallpaper'], WallpaperType.HTML);
     let mainWallpaper : WallpaperWindow = new WallpaperWindow(screen.getPrimaryDisplay(), currentWallpaper); 
 
-    
+    globalShortcut.register(UserConfiguration.content.shortcuts.quit, app.quit);
+
     
 }
 
+function exitApp() : void {
+    UserConfiguration.saveUserConfiguration();
+}
+
+
 app.whenReady().then(initApp);
+
+app.on('will-quit', exitApp);
 
 function loadConfiguration() : void {
 
@@ -32,4 +40,6 @@ function loadConfiguration() : void {
     }
 
     UserConfiguration.sanitizeUserConfigurationShortcuts();
+
+    console.log(JSON.stringify(UserConfiguration.content, null, 4));
 }
