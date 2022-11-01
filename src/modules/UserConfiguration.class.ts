@@ -4,6 +4,8 @@ import { isAccelerator } from "./isAccelerator";
 import { parseJSONFromFile, writeJSONToFile } from "./JSONFromTo";
 
 export class UserConfiguration {
+
+    //public
     public static content : ConfigurationContent;
 
     public static loadUserConfiguration() : void {
@@ -29,7 +31,7 @@ export class UserConfiguration {
         }
     }
 
-    public static sanitizeUserConfigurationDirectory() : void {
+    public static sanitizeConfigurationDirectory() : void {
         if (!process.env.CONFIG_DIRECTORY)
             throw new Error('Attempt to load configuration before config directory path definition!');
         
@@ -47,7 +49,7 @@ export class UserConfiguration {
             cpSync(resolve(__dirname, '../../assets/default_wallpaper.mp4'), `${cd}/wallpapers/default/default_wallpaper.mp4`);
     }
 
-    public static sanitizeUserConfigurationShortcuts() : void {
+    public static sanitizeShortcuts() : void {
         
         let defaultShortcuts : ShortcutList = parseJSONFromFile(resolve(__dirname, '../../assets/default_config.json')).shortcuts;
         
@@ -72,6 +74,16 @@ export class UserConfiguration {
         }
     }
 
+    public static sanitizeCurrentWallpaper() : void {
+        let defaultWallpaper : PathLike = parseJSONFromFile(resolve(__dirname, '../../assets/default_config.json')).currentWallpaper;
+
+        if (UserConfiguration.content.currentWallpaper === undefined) 
+            UserConfiguration.content.currentWallpaper = defaultWallpaper;
+        else 
+            if (!existsSync(UserConfiguration.content.currentWallpaper))
+                UserConfiguration.content.currentWallpaper = defaultWallpaper;
+    }
+    // private
     private static removeInvalidFields(configuration : any) : ConfigurationContent {
         let defaultConfiguration : ConfigurationContent = parseJSONFromFile(resolve(__dirname, '../../assets/default_config.json'));
         
