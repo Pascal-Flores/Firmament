@@ -1,5 +1,5 @@
 import { BrowserWindow, dialog, Display, screen } from "electron";
-import { extname } from 'path';
+import { extname, basename, dirname } from 'path';
 import { convertToObject, OperationCanceledException } from "typescript";
 import { getURLFromFile } from "./URLUtils";
 import { UserConfiguration } from "./UserConfiguration.class";
@@ -34,20 +34,25 @@ export class WallpaperWindowManager {
                 // and then we switch the wallpaper by giving the new wallpaper file path obtained thanks to the dialog window
                 if (promiseResult !== undefined) {
                     if (promiseResult.filePaths.length != 0) {
-                        let newWallpaper : Wallpaper;
+                        let newWallpaperType : WallpaperType;
                         switch (extname(promiseResult.filePaths[0])) {
                             case '.url' : 
-                                newWallpaper = new Wallpaper(promiseResult.filePaths[0], WallpaperType.URL);
+                                newWallpaperType = WallpaperType.URL;
                                 break;
                             case '.html' :
-                                newWallpaper = new Wallpaper(promiseResult.filePaths[0], WallpaperType.HTML);
+                                newWallpaperType = WallpaperType.HTML;
+                                break;
+                            default:
+                                newWallpaperType = WallpaperType.HTML;
                                 break;
                         }
+
+                        let newWallpaper = new Wallpaper(basename(dirname(promiseResult.filePaths[0])), promiseResult.filePaths[0], newWallpaperType);
                         WallpaperWindowManager.getInstance().getWallpaperWindowIds().forEach(windowId => {
                             WallpaperWindowManager.getInstance().setWallpaper(windowId, newWallpaper);
                         });
 
-                        UserConfiguration.content.currentWallpaper = promiseResult.filePaths[0];
+                        UserConfiguration.content.currentWallpaper = newWallpaper;
                     }
                 }
             })
@@ -76,7 +81,7 @@ export class WallpaperWindowManager {
     private constructor() {
         this.wallpaperWindows = [];
 
-        screen.getAllDisplays().forEach(display => this.addWindow(display, new Wallpaper(UserConfiguration.content['currentWallpaper'], WallpaperType.HTML)));
+        screen.getAllDisplays().forEach(display => this.addWindow(display, UserConfiguration.content.currentWallpaper));
     }
 
     private addWindow(display : Display, wallpaper ?: Wallpaper) : void {
