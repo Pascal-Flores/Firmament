@@ -1,23 +1,29 @@
 import { Menu, MenuItem, Tray } from "electron";
-import { PathLike } from "original-fs";
+import { isEqual } from 'lodash';
 import { UserConfiguration } from "./UserConfiguration.class";
 import { WallpaperWindowManager } from "./WallpaperWindowManager.class";
 
 export class TrayManager {
-    public tray : Tray;
 
-    public constructor(image : string | Electron.NativeImage) {
-        this.tray = new Tray(image);
+    ////////////
+    // public //
+    ////////////
+
+    public static getInstance() : TrayManager {
+        if (!TrayManager.instance)
+            TrayManager.instance = new TrayManager('assets/icon.png');
+        
+        return TrayManager.instance;
     }
 
     public buildMenu() : void{
 
         let pinMenuItem
         if (this.isCurrentWallpaperPinned()) {
-            pinMenuItem = new MenuItem({label : 'Unpin this wallpaper', type : 'normal', /*click : /*unpinCurrentWallpaper*/})
+            pinMenuItem = new MenuItem({label : 'Unpin this wallpaper', type : 'normal', click : UserConfiguration.unpinCurrentWallpaper})
         }
         else {
-            pinMenuItem = new MenuItem({label : 'Pin this wallpaper', type : 'normal', /*click : pinCurrentWallpaper*/})
+            pinMenuItem = new MenuItem({label : 'Pin this wallpaper', type : 'normal', click : UserConfiguration.pinCurrentWallpaper})
         }
 
         let trayMenu : Menu = Menu.buildFromTemplate([
@@ -35,13 +41,25 @@ export class TrayManager {
         this.tray.setContextMenu(trayMenu);
     }
 
+
+    /////////////
+    // private //
+    /////////////
+
+    private static instance : TrayManager;
+    private tray : Tray;
+
+    private constructor(image : string | Electron.NativeImage) {
+        this.tray = new Tray(image);
+    }
+
     private buildPinnedWallpapersSubmenu() : Menu {
         let config = UserConfiguration.content
         let submenu = new Menu()
 		if (config.pinnedWallpapers.length != 0) {
-			config.pinnedWallpapers.forEach(element => {
+			config.pinnedWallpapers.forEach(wallpaper => {
 				submenu.append(new MenuItem({
-					label : element.name, 
+					label : wallpaper.name, 
 					type : "normal", 
 					/*click : /*switchWallpaper.bind(this, configDirectory+element.src)*/
 				}));
@@ -57,18 +75,13 @@ export class TrayManager {
 	 * checks wether the current wallpaper is pinned or not
 	 * @returns {bool} true if wallpaper is pinned, false otherwise
 	 */
-	private isCurrentWallpaperPinned() {
-        let config = UserConfiguration.content
-		let result = false
-		if (config.pinnedWallpapers.length != 0) {
-			config.pinnedWallpapers.forEach(element => {
-				if (config.currentWallpaper.toString() == element.src.toString()) {
-					result = true
-				}
-			})
-			return result
-		}
-		return result
+	public isCurrentWallpaperPinned() : boolean {
+        let config = UserConfiguration.content;
+
+        if (config.pinnedWallpapers.findIndex(wallpaper => isEqual(wallpaper, config.currentWallpaper)) == -1)
+            return false;
+        else 
+            return true;
 
 	}
 }
