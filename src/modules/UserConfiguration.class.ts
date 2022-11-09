@@ -1,7 +1,10 @@
 import { cpSync, existsSync, mkdirSync, PathLike } from "original-fs";
-import {resolve, dirname} from "path"
+import {resolve, dirname, basename } from "path"
+import { isEqual } from 'lodash';
 import { isAccelerator } from "./isAccelerator";
 import { parseJSONFromFile, writeJSONToFile } from "./JSONFromTo";
+import { TrayManager } from "./TrayManager.class";
+import { Wallpaper } from "./Wallpaper.class";
 
 export class UserConfiguration {
 
@@ -29,6 +32,18 @@ export class UserConfiguration {
         catch (error) {
             console.log(`Error during configuration save :\n\t${error}\nUser Configuration won't be saved!`)
         }
+    }
+
+    public static pinCurrentWallpaper() : void {
+        let config = UserConfiguration.content;
+        config.pinnedWallpapers.push(config.currentWallpaper);
+        TrayManager.getInstance().buildMenu();
+    }
+
+    public static unpinCurrentWallpaper() : void {
+        let config = UserConfiguration.content;
+        config.pinnedWallpapers.splice(config.pinnedWallpapers.findIndex(wallpaper => isEqual(wallpaper, config.currentWallpaper)));
+        TrayManager.getInstance().buildMenu();
     }
 
     public static sanitizeConfigurationDirectory() : void {
@@ -75,31 +90,32 @@ export class UserConfiguration {
     }
 
     public static sanitizeCurrentWallpaper() : void {
-        let defaultWallpaper : PathLike = parseJSONFromFile(resolve(__dirname, '../../assets/default_config.json')).currentWallpaper;
+        let defaultWallpaper : Wallpaper = parseJSONFromFile(resolve(__dirname, '../../assets/default_config.json')).currentWallpaper;
 
         if (UserConfiguration.content.currentWallpaper === undefined) 
             UserConfiguration.content.currentWallpaper = defaultWallpaper;
         else 
-            if (!existsSync(UserConfiguration.content.currentWallpaper))
+            if (!existsSync(UserConfiguration.content.currentWallpaper.path))
                 UserConfiguration.content.currentWallpaper = defaultWallpaper;
     }
 
-    public static sanitizePins() : void {
-        let defaultPins : Pin[] = [];
+    public static sanitizePinnedWallpapers() : void {
+        let defaultPins : Wallpaper[] = [];
 
         if (UserConfiguration.content.pinnedWallpapers === undefined)
             UserConfiguration.content.pinnedWallpapers = defaultPins;
         else {
             if (UserConfiguration.content.pinnedWallpapers.length > 0) 
-                UserConfiguration.content.pinnedWallpapers.forEach(function(pin : Pin, pinIndex : number) {
-                    if (pin.name === undefined || pin.src === undefined)
+                UserConfiguration.content.pinnedWallpapers.forEach(function(wallpaper : Wallpaper, pinIndex : number) {
+                    if (wallpaper.name === undefined || wallpaper.path === undefined || wallpaper.type === undefined)
                         UserConfiguration.content.pinnedWallpapers.splice(pinIndex);
                     else
-                        if (!existsSync(pin.src))
+                        if (!existsSync(wallpaper.path))
                             UserConfiguration.content.pinnedWallpapers.splice(pinIndex);
                 })
         }
     }
+
     // private
     private static removeInvalidFields(configuration : any) : ConfigurationContent {
         let defaultConfiguration : ConfigurationContent = parseJSONFromFile(resolve(__dirname, '../../assets/default_config.json'));
@@ -115,14 +131,9 @@ export class UserConfiguration {
 }
 
 type ConfigurationContent = {
-    currentWallpaper : PathLike;
+    currentWallpaper : Wallpaper;
     shortcuts : ShortcutList;
-    pinnedWallpapers : Pin[];
-}
-
-type Pin = {
-    name : string;
-    src : PathLike; 
+    pinnedWallpapers : Wallpaper[];
 }
 
 type ShortcutList = {
