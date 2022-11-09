@@ -1,11 +1,9 @@
 import {app, ipcMain, BrowserWindow, screen, Screen, Display, globalShortcut} from "electron";
 import { homedir } from 'os';
 import { resolve } from 'path';
-import { FirmamentTray } from "./modules/FirmamentTray.class";
 import { TrayManager } from "./modules/TrayManager.class";
 import { UserConfiguration } from "./modules/UserConfiguration.class";
 import { Wallpaper, WallpaperType } from "./modules/Wallpaper.class";
-import { WallpaperWindow } from "./modules/WallpaperWindow.class";
 import { WallpaperWindowManager } from "./modules/WallpaperWindowManager.class";
 
 process.env.CONFIG_DIRECTORY = `${homedir()}/.firmament`;
@@ -14,7 +12,6 @@ function initApp() : void {
 
     loadConfiguration();
 
-    let currentWallpaper : Wallpaper = new Wallpaper(UserConfiguration.content['currentWallpaper'], WallpaperType.HTML);
     let wallpaperWindowsManager = WallpaperWindowManager.getInstance();
 
     try {
