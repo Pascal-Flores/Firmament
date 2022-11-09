@@ -4,19 +4,22 @@
   "description": "A lightweight unix wallpaper manager",
   "main": "./dist/index.js",
   "scripts": {
-    "build" : "tsc",
-    "start": "npm run build && electron ."
+    "build": "tsc",
+    "start": "npm run build && electron .",
+    "clean": "rm -rf ./dist/*"
   },
   "author": "Pascal Flores",
   "license": "ISC",
   "devDependencies": {
     "@electron/remote": "^2.0.8",
     "child_process": "^1.0.2",
-    "electron": "^20.1.4",
+    "electron": "^20.3.4",
     "fs-extra": "^10.1.0"
   },
   "dependencies": {
+    "dpdm": "^3.10.0",
     "node-html-parser": "^6.1.0",
+    "nvm": "^0.0.4",
     "typescript": "^4.8.4"
   },
   "repository": {
