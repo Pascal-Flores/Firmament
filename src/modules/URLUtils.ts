@@ -4,7 +4,7 @@ import {extname} from "path"
 export function getURLFromFile(filePath : string) : string | never {
     if (extname(filePath) === ".url") {
         let fileContent : string = readFileSync(filePath, 'utf-8');
-        return fileContent.substring(fileContent.indexOf('URL=')+4);
+        return fileContent.substring(fileContent.lastIndexOf('URL')+4);
     }
     else   
         throw new NotAURLFileError();
