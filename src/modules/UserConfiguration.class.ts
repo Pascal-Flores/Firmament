@@ -42,7 +42,7 @@ export class UserConfiguration {
 
     public static unpinCurrentWallpaper() : void {
         let config = UserConfiguration.content;
-        config.pinnedWallpapers.splice(config.pinnedWallpapers.findIndex(wallpaper => isEqual(wallpaper, config.currentWallpaper)));
+        config.pinnedWallpapers.splice(config.pinnedWallpapers.findIndex(wallpaper => isEqual(wallpaper, config.currentWallpaper)), 1);
         TrayManager.getInstance().buildMenu();
     }
 
