@@ -1,6 +1,6 @@
 import { BrowserWindow, dialog, Display, screen } from "electron";
 import { extname, basename, dirname } from 'path';
-import { convertToObject, OperationCanceledException } from "typescript";
+import { TrayManager } from "./TrayManager.class";
 import { getURLFromFile } from "./URLUtils";
 import { UserConfiguration } from "./UserConfiguration.class";
 import { Wallpaper, WallpaperType } from "./Wallpaper.class";
@@ -48,26 +48,36 @@ export class WallpaperWindowManager {
                         }
 
                         let newWallpaper = new Wallpaper(basename(dirname(promiseResult.filePaths[0])), promiseResult.filePaths[0], newWallpaperType);
-                        WallpaperWindowManager.getInstance().getWallpaperWindowIds().forEach(windowId => {
-                            WallpaperWindowManager.getInstance().setWallpaper(windowId, newWallpaper);
-                        });
-
-                        UserConfiguration.content.currentWallpaper = newWallpaper;
+                        
+                        try {
+                            WallpaperWindowManager.getInstance().setWallpaper(newWallpaper);
+                        }
+                        catch {
+                            console.log("An error occured, the wallpaper could not be set...")
+                            return;
+                        }
                     }
                 }
             })
     }
 
-    public setWallpaper(windowId : number, wallpaper : Wallpaper) {
-        switch (wallpaper.type) {
-            case WallpaperType.HTML :
-                this.wallpaperWindows[windowId].loadFile(wallpaper.path.toString());   
-                break;
-            case WallpaperType.URL : 
-                console.log(getURLFromFile(wallpaper.path.toString()))
-                this.wallpaperWindows[windowId].loadURL(getURLFromFile(wallpaper.path.toString()));
-                break;
+    public setWallpaper(wallpaper : Wallpaper, windowId ?: number, ) {
+        if (windowId) {
+            switch (wallpaper.type) {
+                case WallpaperType.HTML :
+                    this.wallpaperWindows[windowId].loadFile(wallpaper.path.toString());   
+                    break;
+                case WallpaperType.URL : 
+                    this.wallpaperWindows[windowId].loadURL(getURLFromFile(wallpaper.path.toString()));
+                    break;
+            }
         }
+        else {
+            this.getWallpaperWindowIds().forEach(windowId => this.setWallpaper(wallpaper, windowId));
+        }
+        UserConfiguration.content.currentWallpaper = wallpaper;
+        TrayManager.getInstance().buildMenu();
+
     }
 
 
@@ -89,7 +99,7 @@ export class WallpaperWindowManager {
         //this.wallpaperWindows.push( {id : display.id, window : this.createWindow(display)});
 
         if (wallpaper)
-            this.setWallpaper(display.id, wallpaper);
+            this.setWallpaper(wallpaper, display.id);
     }
 
     private createWindow(display : Display) : BrowserWindow {
