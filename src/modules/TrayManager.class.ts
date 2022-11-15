@@ -18,7 +18,7 @@ export class TrayManager {
 
     public buildMenu() : void{
 
-        let pinMenuItem
+        let pinMenuItem;
         if (this.isCurrentWallpaperPinned()) {
             pinMenuItem = new MenuItem({label : 'Unpin this wallpaper', type : 'normal', click : UserConfiguration.unpinCurrentWallpaper})
         }
@@ -29,7 +29,7 @@ export class TrayManager {
         let trayMenu : Menu = Menu.buildFromTemplate([
             { label : 'Firmament', type : 'normal', enabled : false },
             { type  : 'separator'},
-            { label : 'Change wallpaper', type : 'normal' , click : WallpaperWindowManager.getInstance().changeWallpaper},
+            { label : 'Change wallpaper', type : 'normal' , click : () => {WallpaperWindowManager.getInstance().changeWallpaper()}},
             { label : 'Import new wallpaper', type : 'normal', /*click : createWallpaperCreatorWindow*/ },
             pinMenuItem,
             { label : "Pinned Wallpapers", sublabel : "oui" , submenu : this.buildPinnedWallpapersSubmenu()},
@@ -61,7 +61,7 @@ export class TrayManager {
 				submenu.append(new MenuItem({
 					label : wallpaper.name, 
 					type : "normal", 
-					/*click : /*switchWallpaper.bind(this, configDirectory+element.src)*/
+					click : () => {WallpaperWindowManager.getInstance().setWallpaper(wallpaper);}
 				}));
 			})
 		}
@@ -82,6 +82,5 @@ export class TrayManager {
             return false;
         else 
             return true;
-
 	}
 }
