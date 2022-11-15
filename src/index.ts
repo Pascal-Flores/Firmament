@@ -15,9 +15,7 @@ function initApp() : void {
     let trayManager = TrayManager.getInstance();
     trayManager.buildMenu();
     
-
-
-
+    
     globalShortcut.register(UserConfiguration.content.shortcuts.quit, app.quit);
 
     
