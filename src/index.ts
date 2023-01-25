@@ -1,6 +1,5 @@
-import {app, ipcMain, BrowserWindow, screen, Screen, Display, globalShortcut} from "electron";
+import {app, ipcMain, globalShortcut} from "electron";
 import { homedir } from 'os';
-import { resolve, dirname } from 'path';
 import { TrayManager } from "./modules/TrayManager.class";
 import { UserConfiguration } from "./modules/UserConfiguration.class";
 import { WallpaperWindowManager } from "./modules/WallpaperWindowManager.class";
@@ -14,8 +13,7 @@ function initApp() : void {
 
     let trayManager = TrayManager.getInstance();
     trayManager.buildMenu();
-    
-    
+
     globalShortcut.register(UserConfiguration.content.shortcuts.quit, app.quit);
 
     
@@ -48,3 +46,4 @@ function loadConfiguration() : void {
 
     console.log(JSON.stringify(UserConfiguration.content, null, 4));
 }
+
