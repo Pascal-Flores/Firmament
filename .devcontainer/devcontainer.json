@@ -1,0 +1,24 @@
+{
+    "image": "mcr.microsoft.com/vscode/devcontainers/rust:latest",
+    "customizations": {
+        "vscode": {
+            "extensions" : [
+                "github.copilot",
+                "aaron-bond.better-comments",
+                "dwrolvink.obsidian-dark-theme-rust"
+            ],
+            "settings": {
+                "workbench.colorTheme": "Obsidian Dark",
+                "terminal.integrated.profiles.linux": {
+                    "zsh": {
+                        "path": "zsh"
+                    }
+                },
+                "terminal.integrated.defaultProfile.linux": "zsh"
+            }
+        }
+    },
+    "features": {
+        "ghcr.io/devcontainers/features/rust:1" : {}
+    }
+}
